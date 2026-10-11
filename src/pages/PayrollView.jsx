@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useTenant } from '../context/TenantContext';
 import { fmcgDb, formatCurrencyINR, formatDatePretty } from '../lib/fmcgDb';
+import { calculateMonthWorkingDays, getCalendarWeeksForMonth } from '../lib/payrollCalendar';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import confetti from 'canvas-confetti';
@@ -26,7 +27,9 @@ import {
   Printer,
   ChevronRight,
   TrendingUp,
-  Percent
+  Percent,
+  Wallet,
+  ShieldAlert
 } from 'lucide-react';
 
 const EMPTY_EMPLOYEE = {
@@ -51,10 +54,16 @@ const EMPTY_EMPLOYEE = {
 export default function PayrollView() {
   const { activeAgency, refreshData } = useTenant();
 
-  // Tabs: 'dashboard' | 'employees' | 'monthly' | 'payslips' | 'approvals' | 'config'
+  // Tabs: 'dashboard' | 'employees' | 'monthly' | 'weekly' | 'ledger' | 'payslips' | 'approvals' | 'config'
   const [activeTab, setActiveTab] = useState('dashboard');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedRole, setSelectedRole] = useState('ALL');
+
+  // Calendar Working Days State
+  const [selectedYear, setSelectedYear] = useState(2026);
+  const [selectedMonthIndex, setSelectedMonthIndex] = useState(8); // 8 = September
+  const monthCalc = calculateMonthWorkingDays(selectedYear, selectedMonthIndex);
+  const calendarWeeks = getCalendarWeeksForMonth(selectedYear, selectedMonthIndex);
 
   // Modals & Forms
   const [empModalOpen, setEmpModalOpen] = useState(false);
@@ -141,7 +150,6 @@ export default function PayrollView() {
   const handleDownloadPayslipPDF = (entry) => {
     const doc = new jsPDF();
 
-    // Company Header
     doc.setFillColor(15, 23, 42);
     doc.rect(0, 0, 210, 42, 'F');
 
@@ -156,7 +164,6 @@ export default function PayrollView() {
     doc.text(`GSTIN: ${activeAgency.gstin} · Hub: ${activeAgency.hubLocation}`, 14, 30);
     doc.text(`Generated on: ${new Date().toLocaleDateString('en-IN')}`, 14, 36);
 
-    // Employee Particulars Table
     autoTable(doc, {
       startY: 48,
       head: [['Employee Particulars', 'Details']],
@@ -171,7 +178,6 @@ export default function PayrollView() {
       headStyles: { fillColor: [79, 70, 229], textColor: [255, 255, 255], fontStyle: 'bold' }
     });
 
-    // Earnings & Deductions Table
     autoTable(doc, {
       startY: doc.lastAutoTable.finalY + 8,
       head: [['Earnings Head', 'Amount (INR)', 'Deductions Head', 'Amount (INR)']],
@@ -187,7 +193,6 @@ export default function PayrollView() {
       headStyles: { fillColor: [16, 185, 129], textColor: [255, 255, 255], fontStyle: 'bold' }
     });
 
-    // Net Payout Box
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(14);
     doc.setTextColor(15, 23, 42);
@@ -215,24 +220,24 @@ export default function PayrollView() {
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           <div style={{
-            background: 'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)',
+            background: '#D97706',
             color: '#FFFFFF',
             width: '38px',
             height: '38px',
-            borderRadius: '10px',
+            borderRadius: '8px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            boxShadow: '0 4px 12px rgba(245, 158, 11, 0.4)'
+            border: '1px solid #B45309'
           }}>
             <Users size={20} />
           </div>
           <div>
             <h1 style={{ fontSize: '22px', fontWeight: 800 }}>
-              HR, Staff & Payroll Operations
+              HR, Staff & Payroll Operations Engine
             </h1>
             <p style={{ fontSize: '12.5px', color: 'var(--text-muted)' }}>
-              Complete Staff Directory, Working Days, Salary Processing, Payslips & DL Compliance for <strong style={{ color: 'var(--text-main)' }}>{activeAgency.name}</strong>
+              Calendar Working Days Engine, Driver Master, Salary Processing, Advances Ledger & Payslips for <strong style={{ color: 'var(--text-main)' }}>{activeAgency.name}</strong>
             </p>
           </div>
         </div>
@@ -245,7 +250,7 @@ export default function PayrollView() {
         </div>
       </div>
 
-      {/* Navigation Sub-Tabs */}
+      {/* Sub-Tabs */}
       <div style={{
         display: 'flex',
         alignItems: 'center',
@@ -258,10 +263,12 @@ export default function PayrollView() {
         {[
           { id: 'dashboard', label: 'Payroll Summary', icon: <LayoutDashboard size={16} /> },
           { id: 'employees', label: 'Staff Directory (Driver Master)', icon: <Users size={16} />, count: employees.length },
-          { id: 'monthly', label: 'Monthly Salary Calculations', icon: <DollarSign size={16} /> },
-          { id: 'payslips', label: 'Payslip Viewer & PDF Export', icon: <FileText size={16} /> },
+          { id: 'monthly', label: 'Monthly Salary Processing', icon: <DollarSign size={16} /> },
+          { id: 'weekly', label: 'Weekly / Daily Payouts', icon: <Calendar size={16} /> },
+          { id: 'ledger', label: 'Advances & Shortage Ledger', icon: <Wallet size={16} /> },
+          { id: 'payslips', label: 'Payslip Generator & PDF', icon: <FileText size={16} /> },
           { id: 'approvals', label: 'Attendance Approvals', icon: <CheckCircle2 size={16} />, count: pendingApprovals.length },
-          { id: 'config', label: 'Working Days Config', icon: <Sliders size={16} /> }
+          { id: 'config', label: 'Working Days Calendar', icon: <Sliders size={16} /> }
         ].map(tab => {
           const isActive = activeTab === tab.id;
           return (
@@ -309,7 +316,6 @@ export default function PayrollView() {
       ═══════════════════════════════════════════════════════════════ */}
       {activeTab === 'dashboard' && (
         <div>
-          {/* KPI Summary Grid */}
           <div style={{
             display: 'grid',
             gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
@@ -327,7 +333,7 @@ export default function PayrollView() {
                 {totalStaff} Employees
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', marginTop: '4px' }}>
-                <span className="badge badge-purple">{driversCount} Commercial Drivers</span>
+                <span className="badge badge-cyan">{driversCount} Commercial Drivers</span>
                 <span style={{ color: 'var(--text-muted)' }}>on active roster</span>
               </div>
             </div>
@@ -358,27 +364,26 @@ export default function PayrollView() {
                 {formatCurrencyINR(totalNetProcessed)}
               </div>
               <div style={{ fontSize: '12px', color: 'var(--emerald)', marginTop: '4px' }}>
-                ✓ 3 Salaries Disbursed · 1 Pending
+                ✓ {monthlyEntries.length - pendingApprovals.length} Salaries Disbursed · {pendingApprovals.length} Pending
               </div>
             </div>
 
             <div className="glass-panel" style={{ padding: '22px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
                 <span style={{ fontSize: '11.5px', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }}>
-                  Working Days Setup
+                  Calendar Working Days Engine
                 </span>
                 <Calendar size={18} color="var(--primary)" />
               </div>
               <div style={{ fontSize: '28px', fontWeight: 800, color: '#FFFFFF', fontFamily: 'var(--font-heading)' }}>
-                {config.workingDaysInMonth} Days
+                {monthCalc.workingDays} Days
               </div>
               <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px' }}>
-                {config.weeklyOffDay}s Weekly Off · Overtime ₹{config.defaultOtRatePerHour}/hr
+                {monthCalc.monthLabel}: {monthCalc.totalDays} Total Days ({monthCalc.sundaysCount} Sundays Excluded)
               </div>
             </div>
           </div>
 
-          {/* Quick Staff Roster Preview */}
           <div className="glass-panel" style={{ padding: '24px' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
               <div>
@@ -417,7 +422,7 @@ export default function PayrollView() {
                         </div>
                       </td>
                       <td>
-                        <span className={`badge ${e.role.toLowerCase().includes('driver') ? 'badge-purple' : 'badge-neutral'}`} style={{ fontSize: '11px' }}>
+                        <span className={`badge ${e.role.toLowerCase().includes('driver') ? 'badge-cyan' : 'badge-neutral'}`} style={{ fontSize: '11px' }}>
                           {e.role}
                         </span>
                       </td>
@@ -454,7 +459,6 @@ export default function PayrollView() {
       ═══════════════════════════════════════════════════════════════ */}
       {activeTab === 'employees' && (
         <div>
-          {/* Search & Filter Bar */}
           <div style={{
             display: 'flex',
             alignItems: 'center',
@@ -500,7 +504,6 @@ export default function PayrollView() {
             </div>
           </div>
 
-          {/* Employee Directory Table */}
           <div className="glass-panel" style={{ padding: '24px' }}>
             <div className="table-container">
               <table className="data-table">
@@ -599,7 +602,7 @@ export default function PayrollView() {
             <div>
               <h3 style={{ fontSize: '16px', fontWeight: 800 }}>Monthly Salary Calculation & Payout Register</h3>
               <p style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
-                Processing calculations for period: <strong style={{ color: '#FDE68A' }}>{config.currentPeriod}</strong> ({config.workingDaysInMonth} standard working days)
+                Processing calculations for period: <strong style={{ color: '#FDE68A' }}>{config.currentPeriod}</strong> ({monthCalc.workingDays} standard working days)
               </p>
             </div>
           </div>
@@ -689,28 +692,82 @@ export default function PayrollView() {
       )}
 
       {/* ═══════════════════════════════════════════════════════════════
-          TAB 4: PAYSLIP VIEWER & PDF DOWNLOAD
+          TAB 4: WEEKLY / DAILY PAYOUTS
+      ═══════════════════════════════════════════════════════════════ */}
+      {activeTab === 'weekly' && (
+        <div>
+          <div style={{ marginBottom: '20px' }}>
+            <h3 style={{ fontSize: '16px', fontWeight: 800 }}>Weekly & Daily Wage Calculations</h3>
+            <p style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
+              Weekly periods processing for godown loaders, daily wage workers, and temporary helpers
+            </p>
+          </div>
+
+          <div className="glass-panel" style={{ padding: '24px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '14px', marginBottom: '20px' }}>
+              {calendarWeeks.map(w => (
+                <div key={w.weekNum} style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid var(--border-subtle)', padding: '14px', borderRadius: '8px' }}>
+                  <div style={{ fontWeight: 800, color: 'var(--text-main)', fontSize: '13px' }}>{w.label}</div>
+                  <div style={{ fontSize: '11.5px', color: 'var(--text-muted)', marginTop: '2px' }}>
+                    {formatDatePretty(w.dateFrom)} to {formatDatePretty(w.dateTo)}
+                  </div>
+                  <span className="badge badge-emerald" style={{ marginTop: '8px' }}>Active Payout Window</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ═══════════════════════════════════════════════════════════════
+          TAB 5: ADVANCES & SHORTAGES LEDGER
+      ═══════════════════════════════════════════════════════════════ */}
+      {activeTab === 'ledger' && (
+        <div>
+          <div style={{ marginBottom: '20px' }}>
+            <h3 style={{ fontSize: '16px', fontWeight: 800 }}>Advances & Van Shortages Recovery Ledger</h3>
+            <p style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
+              Track cash loans given to staff and delivery van shortages deducted during monthly payroll
+            </p>
+          </div>
+
+          <div className="glass-panel" style={{ padding: '24px' }}>
+            <div className="table-container">
+              <table className="data-table">
+                <thead>
+                  <tr>
+                    <th>Staff Name</th>
+                    <th>Advance Cash Loan</th>
+                    <th>Transit / Shortage Recovery</th>
+                    <th>Total Monthly Deductions</th>
+                    <th>Ledger Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {monthlyEntries.map(e => (
+                    <tr key={e.id}>
+                      <td style={{ fontWeight: 800 }}>{e.empName} ({e.role})</td>
+                      <td style={{ fontFamily: 'var(--font-mono)' }}>{formatCurrencyINR(e.advancesDeduction)}</td>
+                      <td style={{ fontFamily: 'var(--font-mono)', color: 'var(--rose)' }}>{formatCurrencyINR(e.shortagesRecovery)}</td>
+                      <td style={{ fontFamily: 'var(--font-mono)', fontWeight: 700 }}>{formatCurrencyINR(e.advancesDeduction + e.shortagesRecovery)}</td>
+                      <td>
+                        <span className="badge badge-emerald">Deducted from {e.period} Salary</span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ═══════════════════════════════════════════════════════════════
+          TAB 6: PAYSLIP VIEWER & PDF EXPORT
       ═══════════════════════════════════════════════════════════════ */}
       {activeTab === 'payslips' && (
         <div>
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            flexWrap: 'wrap',
-            gap: '12px',
-            marginBottom: '20px'
-          }}>
-            <div>
-              <h3 style={{ fontSize: '16px', fontWeight: 800 }}>FMCG Official Payslip Generator</h3>
-              <p style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
-                Select an employee salary voucher to preview and export professional branded PDF slips
-              </p>
-            </div>
-          </div>
-
           <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '24px' }}>
-            {/* Left: Payslip List */}
             <div className="glass-panel" style={{ padding: '20px' }}>
               <div style={{ fontSize: '13px', fontWeight: 700, marginBottom: '14px', color: 'var(--text-main)' }}>
                 Select Employee Salary Record ({config.currentPeriod})
@@ -755,7 +812,6 @@ export default function PayrollView() {
               </div>
             </div>
 
-            {/* Right: Live Payslip Paper Preview */}
             <div className="glass-panel" style={{ padding: '24px', background: 'var(--bg-card-solid)', border: '1px solid var(--border-medium)' }}>
               {selectedPayslipEmp ? (
                 <div>
@@ -780,7 +836,6 @@ export default function PayrollView() {
                     <div><strong>OT Hours:</strong> {selectedPayslipEmp.otHours} hrs</div>
                   </div>
 
-                  {/* Earnings vs Deductions Preview */}
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', fontSize: '12px', marginBottom: '18px' }}>
                     <div>
                       <div style={{ fontWeight: 700, color: 'var(--emerald)', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '4px', marginBottom: '6px' }}>
@@ -855,7 +910,7 @@ export default function PayrollView() {
       )}
 
       {/* ═══════════════════════════════════════════════════════════════
-          TAB 5: ATTENDANCE & PAYROLL APPROVALS
+          TAB 7: ATTENDANCE APPROVALS
       ═══════════════════════════════════════════════════════════════ */}
       {activeTab === 'approvals' && (
         <div>
@@ -934,43 +989,58 @@ export default function PayrollView() {
       )}
 
       {/* ═══════════════════════════════════════════════════════════════
-          TAB 6: WORKING DAYS CONFIGURATION
+          TAB 8: WORKING DAYS CALENDAR CONFIG
       ═══════════════════════════════════════════════════════════════ */}
       {activeTab === 'config' && (
-        <div style={{ maxWidth: '680px' }}>
+        <div style={{ maxWidth: '780px' }}>
           <div className="glass-panel" style={{ padding: '28px' }}>
             <h3 style={{ fontSize: '17px', fontWeight: 800, marginBottom: '6px' }}>
-              Working Days & Payroll Configuration
+              Working Days Calendar & Payroll Engine Setup
             </h3>
             <p style={{ fontSize: '12.5px', color: 'var(--text-muted)', marginBottom: '24px' }}>
-              Configure agency monthly working days calculation, weekly off rules, and statutory PF/ESI percentages
+              Calculates exact calendar days, Sundays count, and working days for salary calculation
             </p>
+
+            <div style={{ background: 'rgba(0,0,0,0.25)', padding: '16px', borderRadius: '10px', marginBottom: '20px', display: 'flex', gap: '16px', alignItems: 'center' }}>
+              <div className="input-group" style={{ width: '160px' }}>
+                <label className="input-label">Select Month</label>
+                <select
+                  className="select-field"
+                  value={selectedMonthIndex}
+                  onChange={(e) => setSelectedMonthIndex(Number(e.target.value))}
+                >
+                  {monthCalc.monthName && ['January','February','March','April','May','June','July','August','September','October','November','December'].map((m, idx) => (
+                    <option key={idx} value={idx}>{m}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="input-group" style={{ width: '120px' }}>
+                <label className="input-label">Select Year</label>
+                <input
+                  type="number"
+                  className="input-field font-mono"
+                  value={selectedYear}
+                  onChange={(e) => setSelectedYear(Number(e.target.value))}
+                />
+              </div>
+
+              <div style={{ flex: 1, paddingLeft: '12px', borderLeft: '1px solid var(--border-subtle)', fontSize: '12.5px' }}>
+                <div><strong>Month Label:</strong> {monthCalc.monthLabel}</div>
+                <div><strong>Total Days:</strong> {monthCalc.totalDays} Days | <strong>Sundays:</strong> {monthCalc.sundaysCount} Days</div>
+                <div><strong>Standard Net Working Days:</strong> <strong style={{ color: 'var(--emerald)' }}>{monthCalc.workingDays} Working Days</strong></div>
+              </div>
+            </div>
 
             <form onSubmit={handleSaveConfig} style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
               <div className="input-group">
-                <label className="input-label">Standard Working Days per Month</label>
+                <label className="input-label">Standard Working Days Override</label>
                 <input
                   type="number"
                   className="input-field font-mono"
                   value={config.workingDaysInMonth}
                   onChange={(e) => setConfig({ ...config, workingDaysInMonth: Number(e.target.value) })}
                 />
-                <span style={{ fontSize: '11px', color: 'var(--text-dim)' }}>
-                  Standard FMCG agency month is 26 working days (excluding Sundays).
-                </span>
-              </div>
-
-              <div className="input-group">
-                <label className="input-label">Weekly Off Day</label>
-                <select
-                  className="select-field"
-                  value={config.weeklyOffDay}
-                  onChange={(e) => setConfig({ ...config, weeklyOffDay: e.target.value })}
-                >
-                  <option value="Sunday">Sunday</option>
-                  <option value="Monday">Monday</option>
-                  <option value="Custom">Rotational (Van Drivers)</option>
-                </select>
               </div>
 
               <div className="input-group">
@@ -1101,7 +1171,6 @@ export default function PayrollView() {
                 </div>
               </div>
 
-              {/* Salary Breakdown */}
               <div style={{ background: 'rgba(0,0,0,0.2)', padding: '16px', borderRadius: '10px', border: '1px solid var(--border-subtle)' }}>
                 <div style={{ fontSize: '11.5px', fontWeight: 800, color: 'var(--text-main)', marginBottom: '10px' }}>
                   SALARY STRUCTURE & ALLOWANCES (MONTHLY)
@@ -1138,7 +1207,6 @@ export default function PayrollView() {
                 </div>
               </div>
 
-              {/* Driver License & Bank */}
               <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '16px' }}>
                 <div className="input-group">
                   <label className="input-label">Commercial Driving License (DL #)</label>

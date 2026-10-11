@@ -284,15 +284,15 @@ export default function FleetManagement() {
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <div style={{
-              background: 'linear-gradient(135deg, #6366F1 0%, #4F46E5 100%)',
+              background: '#2563EB',
               color: '#FFFFFF',
               width: '38px',
               height: '38px',
-              borderRadius: '10px',
+              borderRadius: '8px',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              boxShadow: '0 4px 12px rgba(99, 102, 241, 0.4)'
+              border: '1px solid #1D4ED8'
             }}>
               <Truck size={20} />
             </div>
@@ -438,152 +438,139 @@ export default function FleetManagement() {
             </div>
           </div>
 
-          {/* Vehicle Cards Grid */}
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(360px, 1fr))',
-            gap: '20px'
-          }}>
-            {filteredVehicles.map(v => {
-              const fcDays = calculateDaysLeft(v.fc?.expiryDate);
-              const insDays = calculateDaysLeft(v.insurance?.expiryDate);
-              const pucDays = calculateDaysLeft(v.puc?.expiryDate);
+          {/* Operations Fleet Master Table */}
+          <div className="table-container">
+            <table className="data-table">
+              <thead>
+                <tr>
+                  <th>Vehicle Reg / Model</th>
+                  <th>Assigned Driver & Beat Route</th>
+                  <th>Payload & Odometer</th>
+                  <th>Fitness Cert (FC)</th>
+                  <th>Motor Insurance</th>
+                  <th>Status</th>
+                  <th style={{ textAlign: 'right' }}>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredVehicles.map(v => {
+                  const fcDays = calculateDaysLeft(v.fc?.expiryDate);
+                  const insDays = calculateDaysLeft(v.insurance?.expiryDate);
 
-              return (
-                <div key={v.id} className="glass-panel" style={{ padding: '22px', position: 'relative', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-                  <div>
-                    {/* Top Row: Reg No + Badges */}
-                    <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '10px' }}>
-                      <div>
-                        <div style={{
-                          fontFamily: 'var(--font-mono)',
-                          fontSize: '18px',
-                          fontWeight: 800,
-                          color: '#FFFFFF',
-                          letterSpacing: '0.04em'
-                        }}>
+                  return (
+                    <tr key={v.id}>
+                      <td>
+                        <div style={{ fontFamily: 'var(--font-mono)', fontSize: '13.5px', fontWeight: 800, color: '#FFFFFF' }}>
                           {v.regNo}
                         </div>
-                        <div style={{ fontSize: '12.5px', color: 'var(--text-muted)' }}>
-                          {v.model}
+                        <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
+                          {v.model} · {v.type} ({v.fuelType})
                         </div>
-                      </div>
+                      </td>
 
-                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '4px' }}>
+                      <td>
+                        <div style={{ fontWeight: 700, fontSize: '12.5px', color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <User size={13} color="var(--primary)" />
+                          {v.driverName || <span style={{ color: 'var(--text-dim)' }}>Unassigned</span>}
+                        </div>
+                        <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '2px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                          <MapPin size={12} color="var(--cyan)" />
+                          {v.assignedRoute || 'No Beat Assigned'}
+                        </div>
+                      </td>
+
+                      <td>
+                        <div style={{ fontSize: '12px', color: 'var(--text-main)', fontFamily: 'var(--font-mono)' }}>
+                          {v.payloadKg} kg ({v.crateCapacity} Crates)
+                        </div>
+                        <div style={{ fontSize: '11px', color: 'var(--text-dim)', fontFamily: 'var(--font-mono)' }}>
+                          Odo: {v.currentOdo?.toLocaleString()} km
+                        </div>
+                      </td>
+
+                      <td>
+                        {fcDays === null ? (
+                          <span style={{ fontSize: '11.5px', color: 'var(--text-dim)' }}>Exempt</span>
+                        ) : fcDays < 0 ? (
+                          <div>
+                            <span className="badge badge-rose">EXPIRED {Math.abs(fcDays)}d ago</span>
+                            <div style={{ fontSize: '10.5px', color: 'var(--rose)', marginTop: '2px' }}>{v.fc?.expiryDate}</div>
+                          </div>
+                        ) : fcDays <= 30 ? (
+                          <div>
+                            <span className="badge badge-amber">{fcDays}d remaining</span>
+                            <div style={{ fontSize: '10.5px', color: 'var(--amber)', marginTop: '2px' }}>{v.fc?.expiryDate}</div>
+                          </div>
+                        ) : (
+                          <div>
+                            <span className="badge badge-emerald">Valid</span>
+                            <div style={{ fontSize: '10.5px', color: 'var(--text-dim)', marginTop: '2px' }}>{v.fc?.expiryDate}</div>
+                          </div>
+                        )}
+                      </td>
+
+                      <td>
+                        {insDays === null ? (
+                          <span style={{ fontSize: '11.5px', color: 'var(--text-dim)' }}>—</span>
+                        ) : insDays < 0 ? (
+                          <div>
+                            <span className="badge badge-rose">EXPIRED</span>
+                            <div style={{ fontSize: '10.5px', color: 'var(--rose)', marginTop: '2px' }}>{v.insurance?.insurer || 'Policy Due'}</div>
+                          </div>
+                        ) : insDays <= 30 ? (
+                          <div>
+                            <span className="badge badge-amber">{insDays}d left</span>
+                            <div style={{ fontSize: '10.5px', color: 'var(--amber)', marginTop: '2px' }}>{v.insurance?.insurer}</div>
+                          </div>
+                        ) : (
+                          <div>
+                            <span className="badge badge-emerald">Valid</span>
+                            <div style={{ fontSize: '10.5px', color: 'var(--text-dim)', marginTop: '2px' }}>{v.insurance?.insurer}</div>
+                          </div>
+                        )}
+                      </td>
+
+                      <td>
                         <span className={`badge ${v.status === 'Active' ? 'badge-emerald' : 'badge-rose'}`}>
                           {v.status}
                         </span>
-                        <span className="badge badge-neutral" style={{ fontSize: '10.5px' }}>
-                          {v.type} · {v.fuelType}
-                        </span>
-                      </div>
-                    </div>
+                      </td>
 
-                    {/* Route & Driver */}
-                    <div style={{
-                      background: 'rgba(0, 0, 0, 0.25)',
-                      borderRadius: 'var(--radius-md)',
-                      padding: '12px',
-                      marginBottom: '14px',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      gap: '8px'
-                    }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12.5px' }}>
-                        <User size={14} color="var(--primary)" />
-                        <span style={{ color: 'var(--text-dim)' }}>Driver:</span>
-                        <strong style={{ color: 'var(--text-main)' }}>{v.driverName || 'Unassigned'}</strong>
-                      </div>
-                      <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', fontSize: '12px' }}>
-                        <MapPin size={14} color="var(--cyan)" style={{ marginTop: '2px', flexShrink: 0 }} />
-                        <span style={{ color: 'var(--text-dim)', flexShrink: 0 }}>Route:</span>
-                        <span style={{ color: 'var(--text-muted)', lineHeight: 1.3 }}>{v.assignedRoute || 'No Beat Assigned'}</span>
-                      </div>
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '11.5px', borderTop: '1px solid var(--border-subtle)', paddingTop: '6px', marginTop: '2px' }}>
-                        <span style={{ color: 'var(--text-dim)' }}>Payload: {v.payloadKg} kg ({v.crateCapacity} Crates)</span>
-                        <span style={{ color: 'var(--text-main)', fontFamily: 'var(--font-mono)' }}>Odo: {v.currentOdo?.toLocaleString()} km</span>
-                      </div>
-                    </div>
-
-                    {/* Regulatory Mini Status Grid */}
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '16px' }}>
-                      {/* FC Status */}
-                      <div style={{
-                        background: (fcDays !== null && fcDays < 0) ? 'var(--rose-bg)' : (fcDays !== null && fcDays <= 30) ? 'var(--amber-bg)' : 'rgba(255,255,255,0.03)',
-                        border: `1px solid ${(fcDays !== null && fcDays < 0) ? 'var(--rose-border)' : (fcDays !== null && fcDays <= 30) ? 'var(--amber-border)' : 'var(--border-subtle)'}`,
-                        borderRadius: 'var(--radius-sm)',
-                        padding: '8px 10px'
-                      }}>
-                        <div style={{ fontSize: '10px', fontWeight: 700, color: 'var(--text-dim)', textTransform: 'uppercase' }}>
-                          Fitness Cert (FC)
+                      <td style={{ textAlign: 'right' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '6px' }}>
+                          <button
+                            onClick={() => openAddService(v.id)}
+                            className="btn btn-secondary btn-sm"
+                            style={{ fontSize: '11px', padding: '5px 8px' }}
+                            title="Log Service Bill"
+                          >
+                            <Wrench size={12} />
+                            Service
+                          </button>
+                          <button
+                            onClick={() => openEditVehicle(v)}
+                            className="btn btn-secondary btn-sm"
+                            style={{ fontSize: '11px', padding: '5px 8px' }}
+                            title="Edit Vehicle Specs"
+                          >
+                            <Edit2 size={12} />
+                            Edit
+                          </button>
+                          <button
+                            onClick={() => handleDeleteVehicle(v.id, v.regNo)}
+                            className="btn btn-secondary btn-sm"
+                            style={{ fontSize: '11px', padding: '5px 7px', color: 'var(--rose)' }}
+                            title="Delete Vehicle"
+                          >
+                            <Trash2 size={12} />
+                          </button>
                         </div>
-                        <div style={{ fontSize: '12px', fontWeight: 700, marginTop: '2px', color: (fcDays !== null && fcDays < 0) ? '#FCA5A5' : (fcDays !== null && fcDays <= 30) ? '#FDE68A' : 'var(--text-main)' }}>
-                          {fcDays === null ? 'Exempt' : fcDays < 0 ? `EXPIRED ${Math.abs(fcDays)}d ago` : fcDays <= 30 ? `⚠ ${fcDays}d left` : '✓ Valid'}
-                        </div>
-                        <div style={{ fontSize: '10.5px', color: 'var(--text-dim)' }}>
-                          {v.fc?.expiryDate || '—'}
-                        </div>
-                      </div>
-
-                      {/* Insurance Status */}
-                      <div style={{
-                        background: (insDays !== null && insDays < 0) ? 'var(--rose-bg)' : (insDays !== null && insDays <= 30) ? 'var(--amber-bg)' : 'rgba(255,255,255,0.03)',
-                        border: `1px solid ${(insDays !== null && insDays < 0) ? 'var(--rose-border)' : (insDays !== null && insDays <= 30) ? 'var(--amber-border)' : 'var(--border-subtle)'}`,
-                        borderRadius: 'var(--radius-sm)',
-                        padding: '8px 10px'
-                      }}>
-                        <div style={{ fontSize: '10px', fontWeight: 700, color: 'var(--text-dim)', textTransform: 'uppercase' }}>
-                          Insurance Policy
-                        </div>
-                        <div style={{ fontSize: '12px', fontWeight: 700, marginTop: '2px', color: (insDays !== null && insDays < 0) ? '#FCA5A5' : (insDays !== null && insDays <= 30) ? '#FDE68A' : 'var(--text-main)' }}>
-                          {insDays === null ? '—' : insDays < 0 ? `EXPIRED ${Math.abs(insDays)}d ago` : insDays <= 30 ? `⚠ ${insDays}d left` : '✓ Valid'}
-                        </div>
-                        <div style={{ fontSize: '10.5px', color: 'var(--text-dim)' }}>
-                          {v.insurance?.expiryDate || '—'}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Card Actions */}
-                  <div style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    paddingTop: '12px',
-                    borderTop: '1px solid var(--border-subtle)'
-                  }}>
-                    <button
-                      onClick={() => openAddService(v.id)}
-                      className="btn btn-secondary btn-sm"
-                      style={{ fontSize: '11.5px', padding: '5px 10px' }}
-                    >
-                      <Wrench size={13} />
-                      Log Service
-                    </button>
-
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                      <button
-                        onClick={() => openEditVehicle(v)}
-                        className="btn btn-secondary btn-sm"
-                        style={{ fontSize: '11.5px', padding: '5px 10px' }}
-                      >
-                        <Edit2 size={13} />
-                        Edit
-                      </button>
-                      <button
-                        onClick={() => handleDeleteVehicle(v.id, v.regNo)}
-                        className="btn btn-secondary btn-sm"
-                        style={{ fontSize: '11.5px', padding: '5px 8px', color: 'var(--rose)' }}
-                        title="Delete vehicle"
-                      >
-                        <Trash2 size={13} />
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
           </div>
         </div>
       )}
@@ -595,10 +582,10 @@ export default function FleetManagement() {
         <div>
           {/* Top Info Banner */}
           <div style={{
-            background: 'rgba(99, 102, 241, 0.08)',
-            border: '1px solid rgba(99, 102, 241, 0.25)',
-            borderRadius: 'var(--radius-lg)',
-            padding: '16px 20px',
+            background: '#0F172A',
+            border: '1px solid #1E293B',
+            borderRadius: 'var(--radius-md)',
+            padding: '14px 18px',
             marginBottom: '20px',
             display: 'flex',
             alignItems: 'center',
@@ -812,7 +799,7 @@ export default function FleetManagement() {
                       </div>
                     </td>
                     <td>
-                      <span className="badge badge-purple" style={{ fontSize: '11px' }}>
+                      <span className="badge badge-cyan" style={{ fontSize: '11px' }}>
                         {s.serviceType}
                       </span>
                       {s.billNumber && (

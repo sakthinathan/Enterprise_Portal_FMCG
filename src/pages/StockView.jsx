@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
 import { useTenant } from '../context/TenantContext';
-import { fmcgDb, formatCurrencyINR } from '../lib/fmcgDb';
+import { fmcgDb, formatCurrencyINR, formatDatePretty } from '../lib/fmcgDb';
+import { formatCbbPcs, calculateCbbPcs } from '../lib/cbbUtils';
+import { parseExcelFile } from '../lib/excelParser';
+import { formatWhatsAppAuditSummary, openWhatsAppShare } from '../lib/whatsappReportUtils';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import confetti from 'canvas-confetti';
@@ -23,7 +26,9 @@ import {
   RefreshCw,
   X,
   Save,
-  Check
+  Check,
+  Share2,
+  MessageSquare
 } from 'lucide-react';
 
 export default function StockView() {
@@ -53,6 +58,9 @@ export default function StockView() {
     vendorClaimStatus: 'Pending Depot Credit Note'
   });
 
+  const [uploadLoading, setUploadLoading] = useState(false);
+  const [uploadMessage, setUploadMessage] = useState('');
+
   // Live Data
   const brands = fmcgDb.getStockBrands();
   const stockItems = fmcgDb.getStockItems();
@@ -79,7 +87,7 @@ export default function StockView() {
     const matchesSearch = s.materialDesc.toLowerCase().includes(searchQuery.toLowerCase()) ||
       s.material.toLowerCase().includes(searchQuery.toLowerCase()) ||
       s.brand.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesBrand = selectedBrandFilter === 'ALL' || s.brand === selectedBrandFilter;
+    const matchesBrand = selectedBrandFilter === 'ALL' || s.brand.toLowerCase().includes(selectedBrandFilter.toLowerCase());
     const matchesStatus = selectedStatusFilter === 'ALL' || s.status === selectedStatusFilter;
     return matchesSearch && matchesBrand && matchesStatus;
   });
@@ -103,6 +111,30 @@ export default function StockView() {
     }
   };
 
+  // Real Excel File Upload
+  const handleFileUpload = async (file) => {
+    if (!file) return;
+    setUploadLoading(true);
+    setUploadMessage('Reading Excel file sheets...');
+    try {
+      const res = await parseExcelFile(file);
+      if (res.products && res.products.length > 0) {
+        const data = fmcgDb.get();
+        data.stockItems = res.products;
+        fmcgDb.save(data);
+        confetti({ particleCount: 60, spread: 60 });
+        setUploadMessage(`Successfully imported ${res.products.length} SKU items from ${file.name}!`);
+        refreshData();
+      } else {
+        setUploadMessage('No valid products found in Excel sheet.');
+      }
+    } catch (err) {
+      setUploadMessage(`Error parsing Excel: ${err.message || err}`);
+    } finally {
+      setUploadLoading(false);
+    }
+  };
+
   // Add Damaged Item
   const handleSaveDamaged = (e) => {
     e.preventDefault();
@@ -112,11 +144,36 @@ export default function StockView() {
     refreshData();
   };
 
+  // WhatsApp Audit Share
+  const handleShareWhatsApp = () => {
+    const brandNames = Array.from(new Set(stockItems.map(s => s.brand)));
+    const topShortages = stockItems
+      .filter(s => s.status === 'Shortage')
+      .map(s => ({
+        brand: s.brand,
+        materialDesc: s.materialDesc,
+        diffText: `${s.variance} CBB (${formatCurrencyINR(s.varianceValue)})`
+      }));
+
+    const text = formatWhatsAppAuditSummary({
+      agencyName: activeAgency.name,
+      dateStr: new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }),
+      selectedBrandNames: brandNames,
+      totalSkus: totalProducts,
+      countedSkus: totalProducts,
+      matchedSkus: equalCount,
+      shortageSkus: shortageCount,
+      excessSkus: excessCount,
+      topShortages
+    });
+
+    openWhatsAppShare(text, activeAgency.phone);
+  };
+
   // Export Stock Variance PDF
   const handleExportVariancePDF = () => {
     const doc = new jsPDF();
 
-    // Brand Header
     doc.setFillColor(15, 23, 42);
     doc.rect(0, 0, 210, 38, 'F');
 
@@ -127,31 +184,37 @@ export default function StockView() {
 
     doc.setFontSize(10);
     doc.setFont('helvetica', 'normal');
-    doc.text(`FMCG Stock Physical Audit & Variance Reconciliation Report`, 14, 24);
+    doc.text(`FMCG Stock Physical Audit & CBB/PCS Variance Report`, 14, 24);
     doc.text(`GSTIN: ${activeAgency.gstin} · Date: ${new Date().toLocaleDateString('en-IN')}`, 14, 30);
 
-    const rows = stockItems.map(s => [
-      s.material,
-      s.materialDesc,
-      s.brand,
-      `MRP Rs.${s.mrp}`,
-      `${s.systemStockCbb} Ctn`,
-      `${s.physicalStockCbb} Ctn ${s.physicalStockPcs ? `+${s.physicalStockPcs}p` : ''}`,
-      s.variance === 0 ? '0' : `${s.variance > 0 ? '+' : ''}${s.variance} Ctn`,
-      formatCurrencyINR(s.varianceValue),
-      s.status
-    ]);
+    const rows = stockItems.map(s => {
+      const sysCbbText = `${s.systemStockCbb} CBB ${s.systemStockPcs ? `+ ${s.systemStockPcs} PCS` : ''}`;
+      const physCbbText = `${s.physicalStockCbb} CBB ${s.physicalStockPcs ? `+ ${s.physicalStockPcs} PCS` : ''}`;
+      const varCbbText = formatCbbPcs(s.variance * s.conversion, s.conversion, true);
+
+      return [
+        s.material,
+        s.materialDesc,
+        s.brand,
+        `Rs.${s.mrp} (${s.conversion}pcs)`,
+        sysCbbText,
+        physCbbText,
+        varCbbText || '0 CBB',
+        formatCurrencyINR(s.varianceValue),
+        s.status
+      ];
+    });
 
     autoTable(doc, {
       startY: 44,
-      head: [['Code', 'Material Description', 'Brand', 'MRP', 'System Stock', 'Physical Count', 'Variance', 'Diff Value', 'Status']],
+      head: [['Code', 'Material Description', 'Brand', 'MRP / Pack', 'System CBB', 'Physical CBB', 'CBB Variance', 'Diff Value', 'Status']],
       body: rows,
       theme: 'grid',
-      headStyles: { fillColor: [16, 185, 129], textColor: [255, 255, 255], fontStyle: 'bold', fontSize: 8.5 },
-      bodyStyles: { fontSize: 8 }
+      headStyles: { fillColor: [16, 185, 129], textColor: [255, 255, 255], fontStyle: 'bold', fontSize: 8 },
+      bodyStyles: { fontSize: 7.5 }
     });
 
-    doc.save(`Stock_Audit_Variance_${activeAgency.id}_${Date.now()}.pdf`);
+    doc.save(`FMCG_Stock_Audit_${activeAgency.id}_${Date.now()}.pdf`);
   };
 
   return (
@@ -167,29 +230,33 @@ export default function StockView() {
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           <div style={{
-            background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)',
+            background: '#059669',
             color: '#FFFFFF',
             width: '38px',
             height: '38px',
-            borderRadius: '10px',
+            borderRadius: '8px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            boxShadow: '0 4px 12px rgba(16, 185, 129, 0.4)'
+            border: '1px solid #047857'
           }}>
             <Package size={20} />
           </div>
           <div>
             <h1 style={{ fontSize: '22px', fontWeight: 800 }}>
-              FMCG StockSync & Inventory Portal
+              FMCG StockSync & Inventory Engine
             </h1>
             <p style={{ fontSize: '12.5px', color: 'var(--text-muted)' }}>
-              Brand Selection, Physical Godown Count, System Variance & Damaged Stock for <strong style={{ color: 'var(--text-main)' }}>{activeAgency.name}</strong>
+              Dual-Unit (CBB/PCS) Physical Count, Live Excel Upload & WhatsApp Audit Reports for <strong style={{ color: 'var(--text-main)' }}>{activeAgency.name}</strong>
             </p>
           </div>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+          <button onClick={handleShareWhatsApp} className="btn btn-emerald btn-sm">
+            <MessageSquare size={14} />
+            Share WhatsApp Report
+          </button>
           <button onClick={handleExportVariancePDF} className="btn btn-secondary btn-sm">
             <FileDown size={14} />
             Export Variance PDF
@@ -201,7 +268,7 @@ export default function StockView() {
         </div>
       </div>
 
-      {/* Navigation Sub-Tabs */}
+      {/* Sub-Tabs */}
       <div style={{
         display: 'flex',
         alignItems: 'center',
@@ -214,9 +281,9 @@ export default function StockView() {
         {[
           { id: 'dashboard', label: 'Stock Dashboard', icon: <LayoutDashboard size={16} /> },
           { id: 'brands', label: 'Brand Selection & Godowns', icon: <Building2 size={16} />, count: brands.length },
-          { id: 'audit', label: 'Physical Stock Count / Audit', icon: <Package size={16} />, count: totalProducts },
-          { id: 'reports', label: 'Variance & Discrepancy Reports', icon: <FileSpreadsheet size={16} /> },
-          { id: 'upload', label: 'Upload Stock Sheet (ERP)', icon: <UploadCloud size={16} /> },
+          { id: 'audit', label: 'Physical Audit (CBB / PCS)', icon: <Package size={16} />, count: totalProducts },
+          { id: 'reports', label: 'Variance Reports', icon: <FileSpreadsheet size={16} /> },
+          { id: 'upload', label: 'Upload StockSheet (.xlsx)', icon: <UploadCloud size={16} /> },
           { id: 'damaged', label: 'Damaged & Expiry Goods', icon: <AlertTriangle size={16} />, count: damagedGoods.length }
         ].map(tab => {
           const isActive = activeTab === tab.id;
@@ -283,14 +350,14 @@ export default function StockView() {
                 {formatCurrencyINR(totalSystemValuation)}
               </div>
               <div style={{ fontSize: '12px', color: 'var(--emerald)', marginTop: '4px' }}>
-                Across {brands.length} Authorized FMCG Brands ({totalProducts} Active SKUs)
+                Across {brands.length} Authorized Brands ({totalProducts} Active SKUs)
               </div>
             </div>
 
             <div className="glass-panel" style={{ padding: '22px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
                 <span style={{ fontSize: '11.5px', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }}>
-                  Physical Count Accuracy
+                  Physical Audit Match Rate
                 </span>
                 <CheckCircle2 size={18} color="var(--cyan)" />
               </div>
@@ -374,7 +441,7 @@ export default function StockView() {
                   </div>
 
                   <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '10px' }}>
-                    Godown #1: <strong>{brand.godownA_Cartons} ctns</strong> · Godown #2: <strong>{brand.godownB_Cartons} ctns</strong>
+                    Godown #1: <strong>{brand.godownA_Cartons} CBB</strong> · Godown #2: <strong>{brand.godownB_Cartons} CBB</strong>
                   </div>
 
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid var(--border-subtle)', paddingTop: '8px' }}>
@@ -411,66 +478,86 @@ export default function StockView() {
             </div>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '20px' }}>
-            {brands.map(brand => (
-              <div key={brand.id} className="glass-panel" style={{ padding: '24px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
-                  <div style={{
-                    width: '42px',
-                    height: '42px',
-                    borderRadius: '12px',
-                    background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    color: '#fff',
-                    fontWeight: 800,
-                    fontSize: '18px'
-                  }}>
-                    🏢
-                  </div>
-                  <span className="badge badge-emerald">{brand.totalSkus} SKUs Active</span>
-                </div>
+          <div className="table-container">
+            <table className="data-table">
+              <thead>
+                <tr>
+                  <th>Brand Company / Manufacturer</th>
+                  <th>Primary Inward Depot</th>
+                  <th>Active SKUs</th>
+                  <th>Central Godown #1</th>
+                  <th>Station Godown #2</th>
+                  <th>Inventory Valuation</th>
+                  <th style={{ textAlign: 'right' }}>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {brands.map(brand => (
+                  <tr key={brand.id}>
+                    <td>
+                      <div style={{ fontWeight: 800, fontSize: '13.5px', color: '#FFFFFF' }}>
+                        {brand.name}
+                      </div>
+                      <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
+                        Company Code: {brand.id.toUpperCase()}
+                      </div>
+                    </td>
 
-                <h3 style={{ fontSize: '17px', fontWeight: 800, marginBottom: '6px' }}>{brand.name}</h3>
-                <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '16px' }}>
-                  Primary Inward Depot: Coimbatore Mother Hub · Secondary: Erode Cross-Dock
-                </p>
+                    <td>
+                      <div style={{ fontSize: '12px', color: 'var(--text-main)' }}>
+                        Coimbatore Mother Hub
+                      </div>
+                      <div style={{ fontSize: '11px', color: 'var(--text-dim)' }}>
+                        Secondary: Erode Cross-Dock
+                      </div>
+                    </td>
 
-                <div style={{ background: 'rgba(0,0,0,0.25)', padding: '12px', borderRadius: '8px', fontSize: '12px', display: 'flex', flexDirection: 'column', gap: '6px', marginBottom: '16px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <span style={{ color: 'var(--text-muted)' }}>Central Godown #1:</span>
-                    <strong style={{ color: 'var(--text-main)' }}>{brand.godownA_Cartons} Cartons</strong>
-                  </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <span style={{ color: 'var(--text-muted)' }}>Station Godown #2:</span>
-                    <strong style={{ color: 'var(--text-main)' }}>{brand.godownB_Cartons} Cartons</strong>
-                  </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px solid var(--border-subtle)', paddingTop: '6px', marginTop: '2px' }}>
-                    <span style={{ color: 'var(--text-muted)' }}>Total Valuation:</span>
-                    <strong style={{ color: 'var(--emerald)', fontFamily: 'var(--font-mono)' }}>{formatCurrencyINR(brand.valuation)}</strong>
-                  </div>
-                </div>
+                    <td>
+                      <span className="badge badge-emerald">
+                        {brand.totalSkus} SKUs
+                      </span>
+                    </td>
 
-                <button
-                  onClick={() => { setSelectedBrandFilter(brand.name.split(' ')[0]); setActiveTab('audit'); }}
-                  className="btn btn-secondary btn-sm"
-                  style={{ width: '100%' }}
-                >
-                  Inspect Physical Stock Audit →
-                </button>
-              </div>
-            ))}
+                    <td>
+                      <span style={{ fontFamily: 'var(--font-mono)', fontSize: '12.5px', fontWeight: 700 }}>
+                        {brand.godownA_Cartons} CBB
+                      </span>
+                    </td>
+
+                    <td>
+                      <span style={{ fontFamily: 'var(--font-mono)', fontSize: '12.5px', fontWeight: 700 }}>
+                        {brand.godownB_Cartons} CBB
+                      </span>
+                    </td>
+
+                    <td>
+                      <strong style={{ color: 'var(--emerald)', fontFamily: 'var(--font-mono)', fontSize: '13px' }}>
+                        {formatCurrencyINR(brand.valuation)}
+                      </strong>
+                    </td>
+
+                    <td style={{ textAlign: 'right' }}>
+                      <button
+                        onClick={() => { setSelectedBrandFilter(brand.name.split(' ')[0]); setActiveTab('audit'); }}
+                        className="btn btn-secondary btn-sm"
+                        style={{ fontSize: '11.5px', padding: '5px 12px' }}
+                      >
+                        Inspect SKUs →
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </div>
       )}
 
       {/* ═══════════════════════════════════════════════════════════════
-          TAB 3: PHYSICAL STOCK COUNT / AUDIT SESSION
+          TAB 3: PHYSICAL AUDIT (CBB / PCS DUAL-UNIT ENGINE)
       ═══════════════════════════════════════════════════════════════ */}
       {activeTab === 'audit' && (
         <div>
-          {/* Filter & Search Bar */}
           <div style={{
             display: 'flex',
             alignItems: 'center',
@@ -502,7 +589,7 @@ export default function StockView() {
                 <option value="Britannia">Britannia</option>
                 <option value="Dabur">Dabur</option>
                 <option value="ITC">ITC</option>
-                <option value="Tata Consumer">Tata Consumer</option>
+                <option value="Tata">Tata Consumer</option>
               </select>
 
               <select
@@ -519,82 +606,84 @@ export default function StockView() {
             </div>
           </div>
 
-          {/* Audit Items Table */}
           <div className="glass-panel" style={{ padding: '24px' }}>
             <div className="table-container">
               <table className="data-table">
                 <thead>
                   <tr>
-                    <th>Material Code & SKU</th>
+                    <th>Material Code & SKU Description</th>
                     <th>Brand</th>
                     <th>MRP / Case Pack</th>
                     <th>System Stock (ERP)</th>
-                    <th>Physical Count</th>
-                    <th>Variance</th>
-                    <th>Discrepancy (₹)</th>
+                    <th>Physical Count (CBB + PCS)</th>
+                    <th>CBB/PCS Variance</th>
+                    <th>Value Diff (₹)</th>
                     <th>Status</th>
                     <th style={{ textAlign: 'right' }}>Audit Action</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredItems.map(item => (
-                    <tr key={item.id}>
-                      <td>
-                        <div style={{ fontWeight: 800, fontSize: '13px', color: 'var(--text-main)' }}>
-                          {item.materialDesc}
-                        </div>
-                        <div style={{ fontSize: '11px', fontFamily: 'var(--font-mono)', color: 'var(--text-dim)' }}>
-                          Code: {item.material} · {item.godown}
-                        </div>
-                      </td>
-                      <td>
-                        <span className="badge badge-neutral" style={{ fontSize: '11px' }}>
-                          {item.brand}
-                        </span>
-                      </td>
-                      <td style={{ fontFamily: 'var(--font-mono)', fontSize: '12px' }}>
-                        ₹{item.mrp} ({item.conversion} pcs/ctn)
-                      </td>
-                      <td style={{ fontFamily: 'var(--font-mono)', fontWeight: 600 }}>
-                        {item.systemStockCbb} Ctn {item.systemStockPcs > 0 ? `+ ${item.systemStockPcs}p` : ''}
-                      </td>
-                      <td style={{ fontFamily: 'var(--font-mono)', fontWeight: 700, color: 'var(--primary-light)' }}>
-                        {item.physicalStockCbb} Ctn {item.physicalStockPcs > 0 ? `+ ${item.physicalStockPcs}p` : ''}
-                      </td>
-                      <td style={{ fontFamily: 'var(--font-mono)' }}>
-                        {item.variance === 0 ? (
-                          <span style={{ color: 'var(--emerald)' }}>0.00</span>
-                        ) : (
-                          <span style={{ color: item.variance < 0 ? 'var(--rose)' : 'var(--amber)', fontWeight: 700 }}>
-                            {item.variance > 0 ? `+${item.variance}` : item.variance} Ctn
+                  {filteredItems.map(item => {
+                    const cbbFormatted = formatCbbPcs(item.variance * item.conversion, item.conversion, true);
+                    return (
+                      <tr key={item.id}>
+                        <td>
+                          <div style={{ fontWeight: 800, fontSize: '13.5px', color: 'var(--text-main)' }}>
+                            {item.materialDesc}
+                          </div>
+                          <div style={{ fontSize: '11px', fontFamily: 'var(--font-mono)', color: 'var(--text-dim)' }}>
+                            Code: {item.material} · {item.godown}
+                          </div>
+                        </td>
+                        <td>
+                          <span className="badge badge-neutral" style={{ fontSize: '11px' }}>
+                            {item.brand}
                           </span>
-                        )}
-                      </td>
-                      <td style={{ fontFamily: 'var(--font-mono)', fontWeight: 700 }}>
-                        {item.varianceValue === 0 ? (
-                          <span style={{ color: 'var(--text-dim)' }}>₹0</span>
-                        ) : (
-                          <span style={{ color: item.varianceValue < 0 ? 'var(--rose)' : 'var(--amber)' }}>
-                            {formatCurrencyINR(item.varianceValue)}
+                        </td>
+                        <td style={{ fontFamily: 'var(--font-mono)', fontSize: '12px' }}>
+                          ₹{item.mrp} ({item.conversion} pcs/CBB)
+                        </td>
+                        <td style={{ fontFamily: 'var(--font-mono)', fontWeight: 600 }}>
+                          {item.systemStockCbb} CBB {item.systemStockPcs > 0 ? `+ ${item.systemStockPcs} PCS` : ''}
+                        </td>
+                        <td style={{ fontFamily: 'var(--font-mono)', fontWeight: 700, color: 'var(--primary-light)' }}>
+                          {item.physicalStockCbb} CBB {item.physicalStockPcs > 0 ? `+ ${item.physicalStockPcs} PCS` : ''}
+                        </td>
+                        <td style={{ fontFamily: 'var(--font-mono)' }}>
+                          {item.variance === 0 ? (
+                            <span style={{ color: 'var(--emerald)' }}>0 CBB + 0 PCS</span>
+                          ) : (
+                            <span style={{ color: item.variance < 0 ? 'var(--rose)' : 'var(--amber)', fontWeight: 700 }}>
+                              {cbbFormatted}
+                            </span>
+                          )}
+                        </td>
+                        <td style={{ fontFamily: 'var(--font-mono)', fontWeight: 700 }}>
+                          {item.varianceValue === 0 ? (
+                            <span style={{ color: 'var(--text-dim)' }}>₹0</span>
+                          ) : (
+                            <span style={{ color: item.varianceValue < 0 ? 'var(--rose)' : 'var(--amber)' }}>
+                              {formatCurrencyINR(item.varianceValue)}
+                            </span>
+                          )}
+                        </td>
+                        <td>
+                          <span className={`badge ${item.status === 'Equal' ? 'badge-emerald' : item.status === 'Shortage' ? 'badge-rose' : 'badge-amber'}`}>
+                            {item.status}
                           </span>
-                        )}
-                      </td>
-                      <td>
-                        <span className={`badge ${item.status === 'Equal' ? 'badge-emerald' : item.status === 'Shortage' ? 'badge-rose' : 'badge-amber'}`}>
-                          {item.status}
-                        </span>
-                      </td>
-                      <td style={{ textAlign: 'right' }}>
-                        <button
-                          onClick={() => openCountModal(item)}
-                          className="btn btn-secondary btn-sm"
-                          style={{ padding: '4px 10px', fontSize: '11.5px' }}
-                        >
-                          Update Count
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
+                        </td>
+                        <td style={{ textAlign: 'right' }}>
+                          <button
+                            onClick={() => openCountModal(item)}
+                            className="btn btn-secondary btn-sm"
+                            style={{ padding: '4px 10px', fontSize: '11.5px' }}
+                          >
+                            Update Count
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
@@ -618,7 +707,7 @@ export default function StockView() {
             <div>
               <h3 style={{ fontSize: '16px', fontWeight: 800 }}>Audit Variance & Loss Discrepancy Analysis</h3>
               <p style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
-                Detailed report of physical inventory differences for godown management review
+                Detailed breakdown of physical inventory differences for godown management review
               </p>
             </div>
             <button onClick={handleExportVariancePDF} className="btn btn-primary btn-sm">
@@ -662,7 +751,7 @@ export default function StockView() {
                     <th>Brand</th>
                     <th>ERP System</th>
                     <th>Physical Count</th>
-                    <th>Carton Difference</th>
+                    <th>CBB / PCS Difference</th>
                     <th>Valuation Impact</th>
                   </tr>
                 </thead>
@@ -671,10 +760,10 @@ export default function StockView() {
                     <tr key={s.id}>
                       <td style={{ fontWeight: 700 }}>{s.materialDesc}</td>
                       <td>{s.brand}</td>
-                      <td style={{ fontFamily: 'var(--font-mono)' }}>{s.systemStockCbb} Ctn</td>
-                      <td style={{ fontFamily: 'var(--font-mono)' }}>{s.physicalStockCbb} Ctn {s.physicalStockPcs ? `+ ${s.physicalStockPcs}p` : ''}</td>
+                      <td style={{ fontFamily: 'var(--font-mono)' }}>{s.systemStockCbb} CBB</td>
+                      <td style={{ fontFamily: 'var(--font-mono)' }}>{s.physicalStockCbb} CBB {s.physicalStockPcs ? `+ ${s.physicalStockPcs} PCS` : ''}</td>
                       <td style={{ fontFamily: 'var(--font-mono)', fontWeight: 700, color: s.variance < 0 ? 'var(--rose)' : 'var(--amber)' }}>
-                        {s.variance > 0 ? `+${s.variance}` : s.variance} Cartons
+                        {formatCbbPcs(s.variance * s.conversion, s.conversion, true)}
                       </td>
                       <td style={{ fontFamily: 'var(--font-mono)', fontWeight: 700, color: s.varianceValue < 0 ? 'var(--rose)' : 'var(--amber)' }}>
                         {formatCurrencyINR(s.varianceValue)}
@@ -689,13 +778,13 @@ export default function StockView() {
       )}
 
       {/* ═══════════════════════════════════════════════════════════════
-          TAB 5: UPLOAD STOCK SHEET (ERP SNAPSHOT)
+          TAB 5: UPLOAD STOCK SHEET (LIVE XLSX PARSER)
       ═══════════════════════════════════════════════════════════════ */}
       {activeTab === 'upload' && (
         <div style={{ maxWidth: '720px' }}>
           <div className="glass-panel" style={{ padding: '32px' }}>
             <h3 style={{ fontSize: '18px', fontWeight: 800, marginBottom: '6px' }}>
-              Import Daily ERP Stock Snapshot (Excel / CSV)
+              Import Daily ERP Stock Snapshot (.xlsx / .csv)
             </h3>
             <p style={{ fontSize: '12.5px', color: 'var(--text-muted)', marginBottom: '24px' }}>
               Upload morning stock sheets downloaded from SAP / Tally / FMCG Principal Portals (ITC, Britannia, Dabur)
@@ -713,23 +802,37 @@ export default function StockView() {
             }}
             onMouseEnter={(e) => e.currentTarget.style.borderColor = 'var(--emerald)'}
             onMouseLeave={(e) => e.currentTarget.style.borderColor = 'var(--border-medium)'}
-            onClick={() => {
-              alert('Excel snapshot parsed! 8 SKUs synchronized successfully.');
-              confetti({ particleCount: 30, spread: 40 });
-            }}
             >
-              <UploadCloud size={44} color="var(--emerald)" style={{ marginBottom: '12px' }} />
-              <div style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-main)', marginBottom: '4px' }}>
-                Drag and drop your StockMRP.xlsx or .csv here
-              </div>
-              <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
-                Required columns: Material, Material Description, Brand, MRP, Conversion, Stock CBB, Stock Pcs
-              </div>
+              <input
+                type="file"
+                accept=".xlsx, .xls, .csv"
+                id="stockFileInput"
+                style={{ display: 'none' }}
+                onChange={(e) => handleFileUpload(e.target.files[0])}
+              />
+              <label htmlFor="stockFileInput" style={{ cursor: 'pointer', display: 'block' }}>
+                <UploadCloud size={44} color="var(--emerald)" style={{ marginBottom: '12px' }} />
+                <div style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-main)', marginBottom: '4px' }}>
+                  {uploadLoading ? 'Parsing Excel file...' : 'Click to select or drop your StockMRP.xlsx file'}
+                </div>
+                <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
+                  Parses Material Code, Description, Brand, MRP, Conversion, and Good Quantity automatically.
+                </div>
+              </label>
             </div>
 
-            <div style={{ background: 'rgba(0,0,0,0.25)', padding: '14px', borderRadius: '8px', fontSize: '12px', color: 'var(--text-muted)' }}>
-              <strong>Recent Inward Snapshot:</strong> StockMRP_03_10_2026_0900.xlsx (Synchronized 4 FMCG Brands, 8 Material Lines)
-            </div>
+            {uploadMessage && (
+              <div style={{
+                background: uploadMessage.includes('Error') ? 'var(--rose-bg)' : 'var(--emerald-bg)',
+                border: `1px solid ${uploadMessage.includes('Error') ? 'var(--rose-border)' : 'var(--emerald-border)'}`,
+                padding: '12px 16px',
+                borderRadius: '8px',
+                fontSize: '12.5px',
+                color: uploadMessage.includes('Error') ? '#FCA5A5' : '#6EE7B7'
+              }}>
+                {uploadMessage}
+              </div>
+            )}
           </div>
         </div>
       )}
@@ -781,7 +884,7 @@ export default function StockView() {
                       </td>
                       <td style={{ fontWeight: 600, color: 'var(--text-main)' }}>{dmg.productName}</td>
                       <td style={{ fontFamily: 'var(--font-mono)' }}>
-                        {dmg.quantityCartons} Ctn {dmg.quantityPcs > 0 ? `+ ${dmg.quantityPcs} pcs` : ''}
+                        {dmg.quantityCartons} CBB {dmg.quantityPcs > 0 ? `+ ${dmg.quantityPcs} PCS` : ''}
                       </td>
                       <td style={{ fontFamily: 'var(--font-mono)', fontWeight: 700, color: 'var(--rose)' }}>
                         {formatCurrencyINR(dmg.estimatedLoss)}
@@ -812,7 +915,7 @@ export default function StockView() {
             <div style={{ padding: '20px 24px', borderBottom: '1px solid var(--border-medium)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                 <Package size={20} color="var(--emerald)" />
-                <h3 style={{ fontSize: '17px', fontWeight: 800 }}>Update Physical Godown Count</h3>
+                <h3 style={{ fontSize: '17px', fontWeight: 800 }}>Update Physical CBB / PCS Count</h3>
               </div>
               <button onClick={() => setCountModalOpen(false)} style={{ background: 'transparent', border: 'none', color: 'var(--text-dim)', cursor: 'pointer' }}>
                 <X size={20} />
@@ -825,18 +928,18 @@ export default function StockView() {
                   {editingItem.materialDesc}
                 </div>
                 <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '2px' }}>
-                  {editingItem.brand} · Code: {editingItem.material} · Case Pack: {editingItem.conversion} pcs
+                  {editingItem.brand} · Code: {editingItem.material} · Case Pack: {editingItem.conversion} pcs/CBB
                 </div>
               </div>
 
               <div style={{ background: 'rgba(0,0,0,0.25)', padding: '12px', borderRadius: '8px', fontSize: '12.5px', display: 'flex', justifyContent: 'space-between' }}>
                 <span style={{ color: 'var(--text-muted)' }}>Current ERP System Stock:</span>
-                <strong style={{ fontFamily: 'var(--font-mono)' }}>{editingItem.systemStockCbb} Cartons</strong>
+                <strong style={{ fontFamily: 'var(--font-mono)' }}>{editingItem.systemStockCbb} CBB ({editingItem.systemStockCbb * editingItem.conversion} PCS)</strong>
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                 <div className="input-group">
-                  <label className="input-label">Physical Cartons Counted *</label>
+                  <label className="input-label">Physical Cases / Cartons (CBB) *</label>
                   <input
                     type="number"
                     required
@@ -846,7 +949,7 @@ export default function StockView() {
                   />
                 </div>
                 <div className="input-group">
-                  <label className="input-label">Loose Pieces Counted</label>
+                  <label className="input-label">Loose Pieces (PCS)</label>
                   <input
                     type="number"
                     className="input-field font-mono"
@@ -926,7 +1029,7 @@ export default function StockView() {
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '14px' }}>
                 <div className="input-group">
-                  <label className="input-label">Damaged Cartons</label>
+                  <label className="input-label">Damaged CBB</label>
                   <input
                     type="number"
                     className="input-field font-mono"
@@ -935,7 +1038,7 @@ export default function StockView() {
                   />
                 </div>
                 <div className="input-group">
-                  <label className="input-label">Loose Pieces</label>
+                  <label className="input-label">Loose PCS</label>
                   <input
                     type="number"
                     className="input-field font-mono"

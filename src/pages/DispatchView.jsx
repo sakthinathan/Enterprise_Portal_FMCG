@@ -101,15 +101,15 @@ export default function DispatchView() {
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           <div style={{
-            background: 'linear-gradient(135deg, #06B6D4 0%, #0891B2 100%)',
+            background: '#0891B2',
             color: '#FFFFFF',
             width: '38px',
             height: '38px',
-            borderRadius: '10px',
+            borderRadius: '8px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            boxShadow: '0 4px 12px rgba(6, 182, 212, 0.4)'
+            border: '1px solid #0E7490'
           }}>
             <MapPin size={20} />
           </div>
@@ -130,7 +130,7 @@ export default function DispatchView() {
       </div>
 
       {/* Dispatches List */}
-      <div className="glass-panel" style={{ padding: '24px' }}>
+      <div style={{ background: '#0F172A', border: '1px solid #1E293B', borderRadius: '8px', padding: '24px' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '18px' }}>
           <h3 style={{ fontSize: '16px', fontWeight: 800 }}>Today's Delivery Route Dispatches</h3>
           <span className="badge badge-cyan">{dispatchSheets.length} Delivery Manifests</span>
@@ -172,7 +172,7 @@ export default function DispatchView() {
                     {dsp.totalCartons} ctns
                   </td>
                   <td>
-                    <span className="badge badge-purple" style={{ fontFamily: 'var(--font-mono)' }}>
+                    <span className="badge badge-neutral" style={{ fontFamily: 'var(--font-mono)' }}>
                       {dsp.plasticCratesIssued} issued / {dsp.plasticCratesReturned} returned
                     </span>
                   </td>
