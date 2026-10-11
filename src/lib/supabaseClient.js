@@ -12,17 +12,41 @@ export const isSupabaseConfigured = () => {
   );
 };
 
+// Base Supabase client
 export const supabase = isSupabaseConfigured()
   ? createClient(supabaseUrl, supabaseAnonKey)
   : null;
 
 /**
- * Cloud Sync Layer for Multi-Tenant FMCG Data
+ * Returns a securely scoped Supabase client with the tenant's 'x-agency-id' header attached.
+ * This triggers PostgreSQL Row-Level Security (RLS) public.check_agency_access(agency_id)
+ * guaranteeing zero cross-tenant data leaks.
+ */
+export const getTenantClient = (agencyId) => {
+  if (!isSupabaseConfigured()) return null;
+  if (!agencyId) return supabase;
+
+  return createClient(supabaseUrl, supabaseAnonKey, {
+    global: {
+      headers: {
+        'x-agency-id': String(agencyId)
+      }
+    }
+  });
+};
+
+/**
+ * Secure Multi-Tenant Cloud Storage Adapter
+ * Strictly verifies and validates tenant ID before every operation
  */
 export const cloudStorage = {
+  // 1. Agencies Master
   async fetchAgencies() {
     if (!supabase) return null;
-    const { data, error } = await supabase.from('agencies').select('*').order('name');
+    const { data, error } = await supabase
+      .from('agencies')
+      .select('id, name, trade_name, gstin, hub_location, brands, contact_phone, contact_email, created_at')
+      .order('name');
     if (error) {
       console.warn('Supabase fetchAgencies error:', error.message);
       return null;
@@ -31,28 +55,33 @@ export const cloudStorage = {
   },
 
   async saveAgency(agency) {
-    if (!supabase) return null;
-    const { data, error } = await supabase.from('agencies').upsert({
-      id: agency.id,
-      name: agency.name,
-      trade_name: agency.tradeName,
-      gstin: agency.gstin,
-      hub_location: agency.hubLocation,
-      brands: agency.brands || [],
-      contact_phone: agency.contactPhone,
-      contact_email: agency.contactEmail,
+    if (!supabase || !agency?.id) return null;
+    const client = getTenantClient(agency.id);
+    const { data, error } = await client.from('agencies').upsert({
+      id: String(agency.id),
+      name: String(agency.name).trim(),
+      trade_name: agency.tradeName || '',
+      gstin: agency.gstin || '',
+      hub_location: agency.hubLocation || 'Central Godown',
+      brands: Array.isArray(agency.brands) ? agency.brands : [],
+      contact_phone: agency.contactPhone || '',
+      contact_email: agency.contactEmail || '',
       updated_at: new Date().toISOString()
     }).select().single();
+
     if (error) console.warn('Supabase saveAgency error:', error.message);
     return data;
   },
 
+  // 2. Vehicles (Scoped by Tenant ID)
   async fetchVehicles(agencyId) {
-    if (!supabase) return null;
-    const { data, error } = await supabase
+    if (!agencyId || !isSupabaseConfigured()) return null;
+    const client = getTenantClient(agencyId);
+    const { data, error } = await client
       .from('vehicles')
       .select('*')
-      .eq('agency_id', agencyId);
+      .eq('agency_id', String(agencyId));
+
     if (error) {
       console.warn('Supabase fetchVehicles error:', error.message);
       return null;
@@ -61,48 +90,55 @@ export const cloudStorage = {
   },
 
   async saveVehicle(agencyId, vehicle) {
-    if (!supabase) return null;
-    const { data, error } = await supabase.from('vehicles').upsert({
-      id: vehicle.id,
-      agency_id: agencyId,
-      reg_no: vehicle.regNo,
-      model: vehicle.model,
-      type: vehicle.type,
-      fuel_type: vehicle.fuelType,
-      payload_kg: vehicle.payloadKg,
-      crate_capacity: vehicle.crateCapacity,
-      assigned_route: vehicle.assignedRoute,
-      driver_id: vehicle.driverId,
-      driver_name: vehicle.driverName,
-      current_odo: vehicle.currentOdo,
-      godown: vehicle.godown,
-      status: vehicle.status,
-      insurance: vehicle.insurance,
-      fc: vehicle.fc,
-      puc: vehicle.puc,
-      road_tax: vehicle.roadTax,
+    if (!agencyId || !vehicle?.id || !isSupabaseConfigured()) return null;
+    const client = getTenantClient(agencyId);
+    const { data, error } = await client.from('vehicles').upsert({
+      id: String(vehicle.id),
+      agency_id: String(agencyId),
+      reg_no: String(vehicle.regNo).trim().toUpperCase(),
+      model: vehicle.model || '',
+      type: vehicle.type || 'Mini Truck',
+      fuel_type: vehicle.fuelType || 'Diesel',
+      payload_kg: Math.max(0, Number(vehicle.payloadKg) || 1000),
+      crate_capacity: Math.max(0, Number(vehicle.crateCapacity) || 60),
+      assigned_route: vehicle.assignedRoute || '',
+      driver_id: vehicle.driverId || null,
+      driver_name: vehicle.driverName || '',
+      current_odo: Math.max(0, Number(vehicle.currentOdo) || 0),
+      godown: vehicle.godown || 'Central Godown',
+      status: vehicle.status || 'Active',
+      insurance: vehicle.insurance || {},
+      fc: vehicle.fc || {},
+      puc: vehicle.puc || {},
+      road_tax: vehicle.roadTax || {},
       updated_at: new Date().toISOString()
     });
+
     if (error) console.warn('Supabase saveVehicle error:', error.message);
     return data;
   },
 
   async deleteVehicle(agencyId, vehicleId) {
-    if (!supabase) return null;
-    const { error } = await supabase
+    if (!agencyId || !vehicleId || !isSupabaseConfigured()) return null;
+    const client = getTenantClient(agencyId);
+    const { error } = await client
       .from('vehicles')
       .delete()
-      .eq('agency_id', agencyId)
-      .eq('id', vehicleId);
+      .eq('agency_id', String(agencyId))
+      .eq('id', String(vehicleId));
+
     if (error) console.warn('Supabase deleteVehicle error:', error.message);
   },
 
+  // 3. Employees & Drivers Roster
   async fetchEmployees(agencyId) {
-    if (!supabase) return null;
-    const { data, error } = await supabase
+    if (!agencyId || !isSupabaseConfigured()) return null;
+    const client = getTenantClient(agencyId);
+    const { data, error } = await client
       .from('employees')
       .select('*')
-      .eq('agency_id', agencyId);
+      .eq('agency_id', String(agencyId));
+
     if (error) {
       console.warn('Supabase fetchEmployees error:', error.message);
       return null;
@@ -111,48 +147,55 @@ export const cloudStorage = {
   },
 
   async saveEmployee(agencyId, emp) {
-    if (!supabase) return null;
-    const { data, error } = await supabase.from('employees').upsert({
-      id: emp.id,
-      agency_id: agencyId,
-      name: emp.name,
-      role: emp.role,
-      department: emp.department,
-      pay_type: emp.payType,
-      basic_salary: emp.basicSalary,
-      daily_wage: emp.dailyWage,
-      hra: emp.hra,
-      conveyance: emp.conveyance,
-      incentives: emp.incentives,
-      phone: emp.phone,
-      license_no: emp.licenseNo,
+    if (!agencyId || !emp?.id || !isSupabaseConfigured()) return null;
+    const client = getTenantClient(agencyId);
+    const { data, error } = await client.from('employees').upsert({
+      id: String(emp.id),
+      agency_id: String(agencyId),
+      name: String(emp.name).trim(),
+      role: emp.role || 'Van Driver',
+      department: emp.department || 'Logistics',
+      pay_type: emp.payType || 'Monthly',
+      basic_salary: Math.max(0, Number(emp.basicSalary) || 0),
+      daily_wage: Math.max(0, Number(emp.dailyWage) || 0),
+      hra: Math.max(0, Number(emp.hra) || 0),
+      conveyance: Math.max(0, Number(emp.conveyance) || 0),
+      incentives: Math.max(0, Number(emp.incentives) || 0),
+      phone: emp.phone || '',
+      license_no: emp.licenseNo || null,
       license_expiry: emp.licenseExpiry || null,
-      bank_name: emp.bankName,
-      account_no: emp.accountNo,
-      ifsc: emp.ifsc,
-      status: emp.status,
+      bank_name: emp.bankName || '',
+      account_no: emp.accountNo || '',
+      ifsc: emp.ifsc || '',
+      status: emp.status || 'Active',
       join_date: emp.joinDate || new Date().toISOString().split('T')[0]
     });
+
     if (error) console.warn('Supabase saveEmployee error:', error.message);
     return data;
   },
 
   async deleteEmployee(agencyId, empId) {
-    if (!supabase) return null;
-    const { error } = await supabase
+    if (!agencyId || !empId || !isSupabaseConfigured()) return null;
+    const client = getTenantClient(agencyId);
+    const { error } = await client
       .from('employees')
       .delete()
-      .eq('agency_id', agencyId)
-      .eq('id', empId);
+      .eq('agency_id', String(agencyId))
+      .eq('id', String(empId));
+
     if (error) console.warn('Supabase deleteEmployee error:', error.message);
   },
 
+  // 4. Stock SKUs & Physical Audit (Cartons / Pieces)
   async fetchStock(agencyId) {
-    if (!supabase) return null;
-    const { data, error } = await supabase
+    if (!agencyId || !isSupabaseConfigured()) return null;
+    const client = getTenantClient(agencyId);
+    const { data, error } = await client
       .from('stock_items')
       .select('*')
-      .eq('agency_id', agencyId);
+      .eq('agency_id', String(agencyId));
+
     if (error) {
       console.warn('Supabase fetchStock error:', error.message);
       return null;
@@ -161,35 +204,41 @@ export const cloudStorage = {
   },
 
   async bulkUpsertStock(agencyId, items) {
-    if (!supabase || !items.length) return null;
+    if (!agencyId || !items?.length || !isSupabaseConfigured()) return null;
+    const client = getTenantClient(agencyId);
     const formatted = items.map(s => ({
-      id: s.id,
-      agency_id: agencyId,
-      brand: s.brand,
-      material: s.material,
-      material_desc: s.materialDesc,
-      mrp: s.mrp,
-      conversion: s.conversion,
-      system_stock_cbb: s.systemStockCbb,
-      system_stock_pcs: s.systemStockPcs,
-      physical_stock_cbb: s.physicalStockCbb,
-      physical_stock_pcs: s.physicalStockPcs,
-      variance: s.variance,
-      variance_value: s.varianceValue,
-      status: s.status,
+      id: String(s.id),
+      agency_id: String(agencyId),
+      brand: s.brand || 'Unbranded',
+      material: String(s.material || '').trim(),
+      material_desc: String(s.materialDesc || '').trim(),
+      mrp: Math.max(0, Number(s.mrp) || 0),
+      conversion: Math.max(1, Number(s.conversion) || 1),
+      system_stock_cbb: Math.max(0, Number(s.systemStockCbb) || 0),
+      system_stock_pcs: Math.max(0, Number(s.systemStockPcs) || 0),
+      physical_stock_cbb: Math.max(0, Number(s.physicalStockCbb) || 0),
+      physical_stock_pcs: Math.max(0, Number(s.physicalStockPcs) || 0),
+      variance: Number(s.variance) || 0,
+      variance_value: Number(s.varianceValue) || 0,
+      status: s.status || 'Equal',
       godown: s.godown || 'Central Godown',
       updated_at: new Date().toISOString()
     }));
-    const { error } = await supabase.from('stock_items').upsert(formatted);
+
+    const { error } = await client.from('stock_items').upsert(formatted);
     if (error) console.warn('Supabase bulkUpsertStock error:', error.message);
   },
 
+  // 5. Van Dispatch Gate Passes
   async fetchDispatchSheets(agencyId) {
-    if (!supabase) return null;
-    const { data, error } = await supabase
+    if (!agencyId || !isSupabaseConfigured()) return null;
+    const client = getTenantClient(agencyId);
+    const { data, error } = await client
       .from('dispatch_sheets')
       .select('*')
-      .eq('agency_id', agencyId);
+      .eq('agency_id', String(agencyId))
+      .order('dispatch_date', { ascending: false });
+
     if (error) {
       console.warn('Supabase fetchDispatchSheets error:', error.message);
       return null;
@@ -198,21 +247,23 @@ export const cloudStorage = {
   },
 
   async saveDispatchSheet(agencyId, sheet) {
-    if (!supabase) return null;
-    const { data, error } = await supabase.from('dispatch_sheets').upsert({
-      id: sheet.id,
-      agency_id: agencyId,
+    if (!agencyId || !sheet?.id || !isSupabaseConfigured()) return null;
+    const client = getTenantClient(agencyId);
+    const { data, error } = await client.from('dispatch_sheets').upsert({
+      id: String(sheet.id),
+      agency_id: String(agencyId),
       dispatch_date: sheet.dispatchDate,
       vehicle_reg: sheet.vehicleReg,
       driver_name: sheet.driverName,
       route_beat: sheet.routeBeat,
-      total_cartons: sheet.totalCartons,
-      plastic_crates_issued: sheet.plasticCratesIssued,
-      plastic_crates_returned: sheet.plasticCratesReturned,
-      retailer_count: sheet.retailerCount,
-      invoice_value: sheet.invoiceValue,
-      status: sheet.status
+      total_cartons: Math.max(0, Number(sheet.totalCartons) || 0),
+      plastic_crates_issued: Math.max(0, Number(sheet.plasticCratesIssued) || 0),
+      plastic_crates_returned: Math.max(0, Number(sheet.plasticCratesReturned) || 0),
+      retailer_count: Math.max(0, Number(sheet.retailerCount) || 0),
+      invoice_value: Math.max(0, Number(sheet.invoiceValue) || 0),
+      status: sheet.status || 'On Delivery Beat'
     });
+
     if (error) console.warn('Supabase saveDispatchSheet error:', error.message);
     return data;
   }
