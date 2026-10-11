@@ -4,6 +4,7 @@ import { TenantProvider } from './context/TenantContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import HeaderNav from './components/HeaderNav';
 import Login from './pages/Login';
+import LandingPage from './pages/LandingPage';
 import HubDashboard from './pages/HubDashboard';
 import FleetManagement from './pages/FleetManagement';
 import StockView from './pages/StockView';
@@ -55,12 +56,30 @@ function PublicRoute({ children }) {
   return children;
 }
 
+function RootRoute() {
+  const { isAuthenticated, isAuditor } = useAuth();
+  if (!isAuthenticated) {
+    return <LandingPage />;
+  }
+  if (isAuditor) {
+    return <Navigate to="/stock-audit" replace />;
+  }
+  return (
+    <ProtectedLayout>
+      <AdminOnlyRoute>
+        <HubDashboard />
+      </AdminOnlyRoute>
+    </ProtectedLayout>
+  );
+}
+
 export default function App() {
   return (
     <HashRouter>
       <TenantProvider>
         <AuthProvider>
           <Routes>
+            <Route path="/landing" element={<LandingPage />} />
             <Route
               path="/login"
               element={
@@ -69,16 +88,7 @@ export default function App() {
                 </PublicRoute>
               }
             />
-            <Route
-              path="/"
-              element={
-                <ProtectedLayout>
-                  <AdminOnlyRoute>
-                    <HubDashboard />
-                  </AdminOnlyRoute>
-                </ProtectedLayout>
-              }
-            />
+            <Route path="/" element={<RootRoute />} />
             <Route
               path="/fleet"
               element={

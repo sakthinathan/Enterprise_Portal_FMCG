@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useTenant } from '../context/TenantContext';
 import {
@@ -12,17 +12,20 @@ import {
   Layers,
   Plus,
   X,
-  Database
+  Database,
+  ArrowLeft
 } from 'lucide-react';
 import { isSupabaseConfigured } from '../lib/supabaseClient';
 
 export default function Login() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { login } = useAuth();
   const { switchAgency, allAgencies, registerAgency } = useTenant();
 
-  const [loginRole, setLoginRole] = useState('admin'); // 'admin' | 'checker'
-  const [email, setEmail] = useState('admin@thulir.com');
+  const paramRole = searchParams.get('role');
+  const [loginRole, setLoginRole] = useState(paramRole === 'checker' ? 'checker' : 'admin'); // 'admin' | 'checker'
+  const [email, setEmail] = useState(paramRole === 'checker' ? 'checker@thulir.com' : 'admin@thulir.com');
   const [password, setPassword] = useState('••••••••••••');
   const [loading, setLoading] = useState(false);
   const [registerModalOpen, setRegisterModalOpen] = useState(false);
@@ -224,6 +227,22 @@ export default function Login() {
         {/* Right: Sign-in & Tenant Switcher */}
         <div style={{ padding: '36px', display: 'flex', flexDirection: 'column', justifyContent: 'center', background: '#FFFFFF' }}>
           <div style={{ marginBottom: '18px' }}>
+            <Link
+              to="/landing"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                fontSize: '11.5px',
+                fontWeight: 600,
+                color: 'var(--primary)',
+                textDecoration: 'none',
+                marginBottom: '12px'
+              }}
+            >
+              <ArrowLeft size={13} />
+              <span>Back to Enterprise Overview & Landing Page</span>
+            </Link>
             <h3 style={{ fontSize: '19px', fontWeight: 800, color: 'var(--text-main)', margin: '0 0 6px 0' }}>
               Agency Portal Access
             </h3>

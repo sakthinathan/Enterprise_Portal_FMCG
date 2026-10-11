@@ -16,7 +16,8 @@ import {
   Building2,
   Database,
   Plus,
-  EyeOff
+  EyeOff,
+  Sparkles
 } from 'lucide-react';
 import { isSupabaseConfigured } from '../lib/supabaseClient';
 
@@ -377,6 +378,17 @@ export default function HeaderNav() {
           <Database size={11} />
           {isSupabaseConfigured() ? 'Cloud DB' : 'Local DB'}
         </span>
+
+        {/* Portal Overview Link */}
+        <Link
+          to="/landing"
+          className="btn btn-secondary btn-sm"
+          style={{ padding: '4px 8px', fontSize: '11px', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '4px' }}
+          title="View FMCG Enterprise Suite Overview"
+        >
+          <Sparkles size={12} color="#2563EB" />
+          <span>Overview</span>
+        </Link>
 
         {/* User Role Badge */}
         {isAuditor ? (
