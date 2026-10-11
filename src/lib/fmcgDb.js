@@ -91,13 +91,19 @@ class FMCGDatabase {
   // ═════════════════════════════════════════════════════════════════════════
   getAllAgencies() {
     const data = this.get();
-    return data.agencies || [];
+    const seen = new Set();
+    return (data.agencies || []).filter(a => {
+      if (!a.id || seen.has(a.id)) return false;
+      seen.add(a.id);
+      return true;
+    });
   }
 
   getActiveAgency() {
     const data = this.get();
-    const agency = data.agencies.find(a => a.id === data.activeAgencyId);
-    return agency || data.agencies[0] || DEFAULT_CLEAN_DATA.agencies[0];
+    const agencies = this.getAllAgencies();
+    const agency = agencies.find(a => a.id === data.activeAgencyId);
+    return agency || agencies[0] || DEFAULT_CLEAN_DATA.agencies[0];
   }
 
   setActiveAgency(agencyId) {
@@ -122,8 +128,12 @@ class FMCGDatabase {
       logoEmoji: agency.logoEmoji || '🏢'
     };
 
-    data.agencies.push(newAgency);
-    data.activeAgencyId = newAgency.id;
+    const existingIndex = (data.agencies || []).findIndex(a => a.id === newAgency.id);
+    if (existingIndex >= 0) {
+      data.agencies[existingIndex] = { ...data.agencies[existingIndex], ...newAgency };
+    } else {
+      data.agencies = [...(data.agencies || []), newAgency];
+    }
     this.save(data);
 
     if (isSupabaseConfigured()) {

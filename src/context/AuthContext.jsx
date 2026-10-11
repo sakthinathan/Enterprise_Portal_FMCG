@@ -30,8 +30,8 @@ export function AuthProvider({ children }) {
     } catch {
       // ignore
     }
-    // Default logged in as Thulir Agencies administrator
-    return THULIR_DEFAULT_USER;
+    // Return null when unauthenticated so refreshing the page does not force auto-login
+    return null;
   });
 
   const login = (email, password) => {
