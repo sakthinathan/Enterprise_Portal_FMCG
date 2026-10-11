@@ -456,7 +456,7 @@ export default function FleetManagement() {
                 {filteredVehicles.length === 0 ? (
                   <tr>
                     <td colSpan={7} style={{ textAlign: 'center', padding: '36px 20px', color: 'var(--text-muted)' }}>
-                      <div style={{ fontSize: '14px', fontWeight: 700, color: '#FFFFFF', marginBottom: '6px' }}>
+                      <div style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-main)', marginBottom: '6px' }}>
                         No Commercial Vehicles in Fleet Yet
                       </div>
                       <div style={{ fontSize: '12px', marginBottom: '14px' }}>
@@ -474,7 +474,7 @@ export default function FleetManagement() {
                   return (
                     <tr key={v.id}>
                       <td>
-                        <div style={{ fontFamily: 'var(--font-mono)', fontSize: '13.5px', fontWeight: 800, color: '#FFFFFF' }}>
+                        <div style={{ fontFamily: 'var(--font-mono)', fontSize: '13.5px', fontWeight: 800, color: 'var(--text-main)' }}>
                           {v.regNo}
                         </div>
                         <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
@@ -595,10 +595,7 @@ export default function FleetManagement() {
       {activeTab === 'compliance' && (
         <div>
           {/* Top Info Banner */}
-          <div style={{
-            background: '#0F172A',
-            border: '1px solid #1E293B',
-            borderRadius: 'var(--radius-md)',
+          <div className="panel" style={{
             padding: '14px 18px',
             marginBottom: '20px',
             display: 'flex',
@@ -610,7 +607,7 @@ export default function FleetManagement() {
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
               <ShieldCheck size={24} color="var(--primary)" />
               <div>
-                <div style={{ fontSize: '13.5px', fontWeight: 800, color: '#FFFFFF' }}>
+                <div style={{ fontSize: '13.5px', fontWeight: 800, color: 'var(--text-main)' }}>
                   Commercial Transport Regulatory Matrix
                 </div>
                 <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>

@@ -85,8 +85,9 @@ export default function HeaderNav() {
       position: 'sticky',
       top: 0,
       zIndex: 100,
-      background: '#0D131F',
+      background: '#FFFFFF',
       borderBottom: '1px solid var(--border-medium)',
+      boxShadow: 'var(--shadow-sm)',
       padding: '0 24px',
       height: '58px',
       display: 'flex',
@@ -114,7 +115,7 @@ export default function HeaderNav() {
             <div style={{
               fontWeight: 800,
               fontSize: '14.5px',
-              color: '#FFFFFF',
+              color: 'var(--text-main)',
               letterSpacing: '-0.01em',
               lineHeight: 1.1
             }}>
@@ -135,7 +136,7 @@ export default function HeaderNav() {
               alignItems: 'center',
               gap: '7px',
               padding: '6px 10px',
-              background: '#161F30',
+              background: '#F8FAFC',
               border: '1px solid var(--border-medium)',
               borderRadius: 'var(--radius-sm)',
               color: 'var(--text-main)',
@@ -144,7 +145,7 @@ export default function HeaderNav() {
               fontWeight: 600
             }}
           >
-            <Building2 size={13} color="var(--primary-text)" />
+            <Building2 size={13} color="var(--primary)" />
             <span style={{ maxWidth: '170px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
               {activeAgency.name}
             </span>
@@ -157,7 +158,7 @@ export default function HeaderNav() {
               top: '115%',
               left: 0,
               width: '270px',
-              background: '#111827',
+              background: '#FFFFFF',
               border: '1px solid var(--border-strong)',
               borderRadius: 'var(--radius-md)',
               boxShadow: 'var(--shadow-lg)',
@@ -187,7 +188,7 @@ export default function HeaderNav() {
                   }}
                 >
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: '12.5px', fontWeight: 700, color: '#FFFFFF', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    <div style={{ fontSize: '12.5px', fontWeight: 700, color: 'var(--text-main)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                       {agency.name}
                     </div>
                     <div style={{ fontSize: '10.5px', color: 'var(--text-dim)' }}>
@@ -211,7 +212,7 @@ export default function HeaderNav() {
                     justifyContent: 'center',
                     gap: '4px',
                     fontSize: '11px',
-                    color: '#38BDF8',
+                    color: 'var(--primary-text)',
                     fontWeight: 700,
                     textDecoration: 'none',
                     padding: '4px 0'
@@ -242,9 +243,9 @@ export default function HeaderNav() {
                 textDecoration: 'none',
                 fontSize: '12.5px',
                 fontWeight: isActive ? 700 : 500,
-                color: isActive ? '#FFFFFF' : 'var(--text-muted)',
-                background: isActive ? '#1E293B' : 'transparent',
-                border: isActive ? '1px solid var(--border-medium)' : '1px solid transparent'
+                color: isActive ? 'var(--primary-text)' : 'var(--text-muted)',
+                background: isActive ? 'var(--primary-subtle)' : 'transparent',
+                border: isActive ? '1px solid #BFDBFE' : '1px solid transparent'
               }}
             >
               <span style={{ color: isActive ? 'var(--primary-text)' : 'inherit' }}>{item.icon}</span>
@@ -275,7 +276,7 @@ export default function HeaderNav() {
             style={{
               padding: '6px 10px',
               borderRadius: 'var(--radius-sm)',
-              background: '#161F30',
+              background: '#F8FAFC',
               border: '1px solid var(--border-medium)',
               display: 'flex',
               alignItems: 'center',
@@ -308,7 +309,7 @@ export default function HeaderNav() {
               top: '115%',
               right: 0,
               width: '320px',
-              background: '#111827',
+              background: '#FFFFFF',
               border: '1px solid var(--border-strong)',
               borderRadius: 'var(--radius-md)',
               boxShadow: 'var(--shadow-lg)',

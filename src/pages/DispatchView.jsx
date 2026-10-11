@@ -130,7 +130,7 @@ export default function DispatchView() {
       </div>
 
       {/* Dispatches List */}
-      <div style={{ background: '#0F172A', border: '1px solid #1E293B', borderRadius: '8px', padding: '24px' }}>
+      <div className="panel" style={{ padding: '24px' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '18px' }}>
           <h3 style={{ fontSize: '16px', fontWeight: 800 }}>Today's Delivery Route Dispatches</h3>
           <span className="badge badge-cyan">{dispatchSheets.length} Delivery Manifests</span>
@@ -155,7 +155,7 @@ export default function DispatchView() {
               {dispatchSheets.length === 0 ? (
                 <tr>
                   <td colSpan={9} style={{ textAlign: 'center', padding: '36px 20px', color: 'var(--text-muted)' }}>
-                    <div style={{ fontSize: '14px', fontWeight: 700, color: '#FFFFFF', marginBottom: '6px' }}>
+                    <div style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-main)', marginBottom: '6px' }}>
                       No Delivery Van Dispatches Recorded Today
                     </div>
                     <div style={{ fontSize: '12px', marginBottom: '14px' }}>

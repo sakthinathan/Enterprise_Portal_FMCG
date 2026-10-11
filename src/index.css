@@ -1,56 +1,59 @@
-/* FMCG Enterprise Business Suite Design System - Clarity & High Contrast */
+/* FMCG Enterprise Business Suite Design System - Light Corporate Edition */
+/* Ultra-crisp, high-contrast, modern ERP aesthetic (Retool / Linear / Stripe style) */
 :root {
   --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
   --font-heading: 'Outfit', 'Plus Jakarta Sans', sans-serif;
   --font-mono: 'JetBrains Mono', monospace;
 
-  /* Crisp Professional Solid Corporate Theme */
-  --bg-canvas: #0B0F17;
-  --bg-surface: #111827;
-  --bg-surface-elevated: #1E293B;
-  --bg-surface-subtle: #0F172A;
+  /* Cool Light Corporate Theme */
+  --bg-canvas: #F8FAFC;          /* Clean slate-white canvas */
+  --bg-surface: #FFFFFF;         /* Solid pure white card surface */
+  --bg-surface-elevated: #FFFFFF;/* Modal / Dropdown surface */
+  --bg-surface-subtle: #F1F5F9;  /* Secondary background / Table headers */
 
-  /* Borders: crisp, solid, high-contrast */
-  --border-subtle: #1E293B;
-  --border-medium: #334155;
-  --border-strong: #475569;
+  /* Borders: Razor-sharp 1px solid slate */
+  --border-subtle: #F1F5F9;
+  --border-medium: #E2E8F0;
+  --border-strong: #CBD5E1;
 
-  /* Brand Colors: Solid Deep Navy & Blue (No purple gradients) */
+  /* Brand Colors: Solid Executive Royal Blue */
   --primary: #2563EB;
   --primary-hover: #1D4ED8;
-  --primary-subtle: rgba(37, 99, 235, 0.12);
-  --primary-text: #60A5FA;
+  --primary-light: #2563EB;
+  --primary-subtle: #EFF6FF;
+  --primary-text: #1D4ED8;
+  --bg-card-solid: #FFFFFF;
 
-  /* Functional Status Colors */
-  --emerald: #10B981;
-  --emerald-bg: rgba(16, 185, 129, 0.12);
-  --emerald-border: #059669;
-  --emerald-text: #34D399;
+  /* High-Contrast Functional Status Colors (Light Theme) */
+  --emerald: #059669;
+  --emerald-bg: #ECFDF5;
+  --emerald-border: #A7F3D0;
+  --emerald-text: #065F46;
 
   --amber: #D97706;
-  --amber-bg: rgba(217, 119, 6, 0.12);
-  --amber-border: #B45309;
-  --amber-text: #FBBF24;
+  --amber-bg: #FFFBEB;
+  --amber-border: #FDE68A;
+  --amber-text: #92400E;
 
   --rose: #DC2626;
-  --rose-bg: rgba(220, 38, 38, 0.12);
-  --rose-border: #B91C1C;
-  --rose-text: #F87171;
+  --rose-bg: #FEF2F2;
+  --rose-border: #FECACA;
+  --rose-text: #991B1B;
 
   --cyan: #0284C7;
-  --cyan-bg: rgba(2, 132, 199, 0.12);
-  --cyan-border: #0369A1;
-  --cyan-text: #38BDF8;
+  --cyan-bg: #F0F9FF;
+  --cyan-border: #BAE6FD;
+  --cyan-text: #075985;
 
-  /* Typography */
-  --text-main: #F8FAFC;
-  --text-muted: #94A3B8;
+  /* Typography: Deep Slate, High Contrast */
+  --text-main: #0F172A;
+  --text-muted: #475569;
   --text-dim: #64748B;
 
-  /* Shadows: Subtle, functional */
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.2);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.4);
+  /* Shadows: Functional & Clean */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.07), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -4px rgba(0, 0, 0, 0.04);
 
   /* Radius */
   --radius-sm: 4px;
@@ -98,8 +101,8 @@ h4 { font-size: 1rem; line-height: 1.4; }
 .font-mono { font-family: var(--font-mono); }
 .font-heading { font-family: var(--font-heading); }
 
-/* Solid Surface Panel (No Glassmorphism, No Glow) */
-.panel {
+/* Solid Surface Panel */
+.panel, .glass-panel {
   background: var(--bg-surface);
   border: 1px solid var(--border-medium);
   border-radius: var(--radius-lg);
@@ -136,13 +139,13 @@ h4 { font-size: 1rem; line-height: 1.4; }
 }
 
 .btn-secondary {
-  background: var(--bg-surface-elevated);
+  background: #FFFFFF;
   color: var(--text-main);
   border-color: var(--border-medium);
 }
 
 .btn-secondary:hover {
-  background: #334155;
+  background: #F8FAFC;
   border-color: var(--border-strong);
 }
 
@@ -163,7 +166,7 @@ h4 { font-size: 1rem; line-height: 1.4; }
   border-radius: var(--radius-sm);
 }
 
-/* Status Badges: Clear, High Contrast (No glowing effects) */
+/* Status Badges: Clear, High Contrast */
 .badge {
   display: inline-flex;
   align-items: center;
@@ -201,8 +204,8 @@ h4 { font-size: 1rem; line-height: 1.4; }
 }
 
 .badge-neutral {
-  background: #1E293B;
-  color: var(--text-muted);
+  background: #F1F5F9;
+  color: #334155;
   border: 1px solid var(--border-medium);
 }
 
@@ -224,19 +227,20 @@ h4 { font-size: 1rem; line-height: 1.4; }
 .input-field, .select-field, .textarea-field {
   width: 100%;
   padding: 8px 12px;
-  background: #0A0E17;
+  background: #FFFFFF;
   border: 1px solid var(--border-medium);
   border-radius: var(--radius-md);
   color: var(--text-main);
   font-family: var(--font-sans);
   font-size: 13px;
   outline: none;
-  transition: border-color 0.15s ease;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
 .input-field:focus, .select-field:focus, .textarea-field:focus {
   border-color: var(--primary);
-  background: #0E1422;
+  background: #FFFFFF;
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.15);
 }
 
 .input-field::placeholder, .textarea-field::placeholder {
@@ -260,7 +264,7 @@ h4 { font-size: 1rem; line-height: 1.4; }
 
 .data-table th {
   padding: 10px 14px;
-  background: #0D131F;
+  background: var(--bg-surface-subtle);
   font-family: var(--font-sans);
   font-size: 11px;
   font-weight: 700;
@@ -283,14 +287,14 @@ h4 { font-size: 1rem; line-height: 1.4; }
 }
 
 .data-table tbody tr:hover {
-  background: rgba(255, 255, 255, 0.025);
+  background: #F8FAFC;
 }
 
 /* Modals */
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.75);
+  background: rgba(15, 23, 42, 0.6);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -299,7 +303,7 @@ h4 { font-size: 1rem; line-height: 1.4; }
 }
 
 .modal-content {
-  background: #111827;
+  background: #FFFFFF;
   border: 1px solid var(--border-strong);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-lg);
@@ -322,6 +326,7 @@ h4 { font-size: 1rem; line-height: 1.4; }
   border: 1px solid var(--border-medium);
   border-radius: var(--radius-lg);
   padding: 16px 18px;
+  box-shadow: var(--shadow-sm);
 }
 
 .metric-box-title {

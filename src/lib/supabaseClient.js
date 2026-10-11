@@ -22,17 +22,31 @@ export const supabase = isSupabaseConfigured()
  * This triggers PostgreSQL Row-Level Security (RLS) public.check_agency_access(agency_id)
  * guaranteeing zero cross-tenant data leaks.
  */
+const tenantClientCache = new Map();
+
 export const getTenantClient = (agencyId) => {
   if (!isSupabaseConfigured()) return null;
   if (!agencyId) return supabase;
 
-  return createClient(supabaseUrl, supabaseAnonKey, {
+  const key = String(agencyId);
+  if (tenantClientCache.has(key)) {
+    return tenantClientCache.get(key);
+  }
+
+  const client = createClient(supabaseUrl, supabaseAnonKey, {
+    auth: {
+      persistSession: false,
+      autoRefreshToken: false
+    },
     global: {
       headers: {
-        'x-agency-id': String(agencyId)
+        'x-agency-id': key
       }
     }
   });
+
+  tenantClientCache.set(key, client);
+  return client;
 };
 
 /**
@@ -41,9 +55,10 @@ export const getTenantClient = (agencyId) => {
  */
 export const cloudStorage = {
   // 1. Agencies Master
-  async fetchAgencies() {
+  async fetchAgencies(agencyId = 'thulir') {
     if (!supabase) return null;
-    const { data, error } = await supabase
+    const client = agencyId ? getTenantClient(agencyId) : supabase;
+    const { data, error } = await client
       .from('agencies')
       .select('id, name, trade_name, gstin, hub_location, brands, contact_phone, contact_email, created_at')
       .order('name');

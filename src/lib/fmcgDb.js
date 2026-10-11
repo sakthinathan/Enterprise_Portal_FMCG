@@ -5,22 +5,22 @@ import { cloudStorage, isSupabaseConfigured } from './supabaseClient';
 
 const STORAGE_KEY = 'fmcg_enterprise_suite_clean_v3';
 
+export const THULIR_AGENCY = {
+  id: 'thulir',
+  name: 'Thulir Agencies',
+  tradeName: 'FMCG Distribution & Super-Stockist',
+  brands: ['ITC', 'HUL', 'Britannia', 'Nestle', 'Tata Consumer'],
+  gstin: '33AAACT9821A1Z4',
+  phone: '+91 98401 23456',
+  email: 'admin@thulir.com',
+  address: 'Main Godown Hub, Chennai',
+  hubLocation: 'Main Godown Hub, Chennai',
+  logoEmoji: '🏢'
+};
+
 const DEFAULT_CLEAN_DATA = {
-  activeAgencyId: 'agency-01',
-  agencies: [
-    {
-      id: 'agency-01',
-      name: 'Default FMCG Agency',
-      tradeName: 'Authorized Consumer Goods Distributor',
-      brands: [],
-      gstin: '33AAACS0000A1Z5',
-      phone: '',
-      email: 'operations@fmcgagency.com',
-      address: 'Central Godown Warehouse',
-      hubLocation: 'Central Hub',
-      logoEmoji: '🏢'
-    }
-  ],
+  activeAgencyId: 'thulir',
+  agencies: [THULIR_AGENCY],
   payrollConfig: {
     workingDaysInMonth: 26,
     weeklyOffDay: 'Sunday',
@@ -50,6 +50,20 @@ class FMCGDatabase {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) {
       this.save(DEFAULT_CLEAN_DATA);
+    } else {
+      try {
+        const parsed = JSON.parse(raw);
+        // Ensure Thulir is included in agencies and active by default
+        if (!parsed.agencies || !parsed.agencies.some(a => a.id === 'thulir')) {
+          parsed.agencies = [THULIR_AGENCY, ...(parsed.agencies || [])];
+        }
+        if (!parsed.activeAgencyId || parsed.activeAgencyId === 'agency-01') {
+          parsed.activeAgencyId = 'thulir';
+        }
+        this.save(parsed);
+      } catch {
+        this.save(DEFAULT_CLEAN_DATA);
+      }
     }
   }
 

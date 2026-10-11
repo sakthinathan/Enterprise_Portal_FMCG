@@ -53,7 +53,7 @@ export default function HubDashboard() {
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '14px' }}>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <h1 style={{ fontSize: '20px', fontWeight: 800, color: '#FFFFFF' }}>
+              <h1 style={{ fontSize: '20px', fontWeight: 800, color: 'var(--text-main)' }}>
                 {activeAgency.name}
               </h1>
               <span className="badge badge-neutral" style={{ fontFamily: 'var(--font-mono)' }}>
@@ -72,7 +72,7 @@ export default function HubDashboard() {
             <div style={{ fontSize: '11px', color: 'var(--text-dim)', textTransform: 'uppercase', fontWeight: 700 }}>
               Operations Date
             </div>
-            <div style={{ fontSize: '15px', fontWeight: 700, color: '#FFFFFF', fontFamily: 'var(--font-heading)' }}>
+            <div style={{ fontSize: '15px', fontWeight: 700, color: 'var(--text-main)', fontFamily: 'var(--font-heading)' }}>
               {new Date().toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })}
             </div>
           </div>
@@ -296,7 +296,7 @@ export default function HubDashboard() {
               overflow: 'hidden',
               border: '1px solid var(--border-medium)',
               marginBottom: '14px',
-              background: '#0F172A'
+              background: 'var(--bg-canvas)'
             }}>
               <img
                 src="/payroll-screenshot.webp"
@@ -341,8 +341,8 @@ export default function HubDashboard() {
                 <div key={dsp.id} style={{
                   padding: '12px',
                   borderRadius: 'var(--radius-md)',
-                  background: '#0D131F',
-                  border: '1px solid var(--border-subtle)',
+                  background: 'var(--bg-canvas)',
+                  border: '1px solid var(--border-medium)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'space-between'

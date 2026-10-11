@@ -298,11 +298,11 @@ export default function StockView() {
                 padding: '10px 16px',
                 border: 'none',
                 background: 'transparent',
-                color: isActive ? '#6EE7B7' : 'var(--text-muted)',
+                color: isActive ? 'var(--primary)' : 'var(--text-muted)',
                 fontSize: '13px',
                 fontWeight: isActive ? 700 : 500,
                 cursor: 'pointer',
-                borderBottom: isActive ? '2px solid var(--emerald)' : '2px solid transparent',
+                borderBottom: isActive ? '2px solid var(--primary)' : '2px solid transparent',
                 marginBottom: '-2px',
                 whiteSpace: 'nowrap',
                 transition: 'all 0.15s ease'
@@ -313,8 +313,8 @@ export default function StockView() {
               {tab.count !== undefined && (
                 <span style={{
                   fontSize: '11px',
-                  background: isActive ? 'rgba(16, 185, 129, 0.25)' : 'rgba(255,255,255,0.06)',
-                  color: isActive ? '#6EE7B7' : 'var(--text-dim)',
+                  background: isActive ? 'var(--primary-subtle)' : 'var(--bg-surface-subtle)',
+                  color: isActive ? 'var(--primary-text)' : 'var(--text-dim)',
                   padding: '2px 7px',
                   borderRadius: '9999px',
                   fontWeight: 700
@@ -339,14 +339,14 @@ export default function StockView() {
             gap: '20px',
             marginBottom: '28px'
           }}>
-            <div className="glass-panel" style={{ padding: '22px' }}>
+            <div className="panel" style={{ padding: '22px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
                 <span style={{ fontSize: '11.5px', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }}>
                   Total Godown Valuation
                 </span>
                 <Package size={18} color="var(--emerald)" />
               </div>
-              <div style={{ fontSize: '28px', fontWeight: 800, color: '#FFFFFF', fontFamily: 'var(--font-heading)' }}>
+              <div style={{ fontSize: '28px', fontWeight: 800, color: 'var(--text-main)', fontFamily: 'var(--font-heading)' }}>
                 {formatCurrencyINR(totalSystemValuation)}
               </div>
               <div style={{ fontSize: '12px', color: 'var(--emerald)', marginTop: '4px' }}>
@@ -354,14 +354,14 @@ export default function StockView() {
               </div>
             </div>
 
-            <div className="glass-panel" style={{ padding: '22px' }}>
+            <div className="panel" style={{ padding: '22px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
                 <span style={{ fontSize: '11.5px', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }}>
                   Physical Audit Match Rate
                 </span>
                 <CheckCircle2 size={18} color="var(--cyan)" />
               </div>
-              <div style={{ fontSize: '28px', fontWeight: 800, color: '#FFFFFF', fontFamily: 'var(--font-heading)' }}>
+              <div style={{ fontSize: '28px', fontWeight: 800, color: 'var(--text-main)', fontFamily: 'var(--font-heading)' }}>
                 {equalCount} / {totalProducts} Match
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', marginTop: '4px' }}>
@@ -370,7 +370,7 @@ export default function StockView() {
               </div>
             </div>
 
-            <div className="glass-panel" style={{ padding: '22px' }}>
+            <div className="panel" style={{ padding: '22px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
                 <span style={{ fontSize: '11.5px', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }}>
                   Shortage Discrepancy
@@ -495,7 +495,7 @@ export default function StockView() {
                 {brands.length === 0 ? (
                   <tr>
                     <td colSpan={7} style={{ textAlign: 'center', padding: '36px 20px', color: 'var(--text-muted)' }}>
-                      <div style={{ fontSize: '14px', fontWeight: 700, color: '#FFFFFF', marginBottom: '6px' }}>
+                      <div style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-main)', marginBottom: '6px' }}>
                         No Principal Brands or Stock Items Loaded Yet
                       </div>
                       <div style={{ fontSize: '12px', marginBottom: '14px' }}>
@@ -509,7 +509,7 @@ export default function StockView() {
                 ) : brands.map(brand => (
                   <tr key={brand.id}>
                     <td>
-                      <div style={{ fontWeight: 800, fontSize: '13.5px', color: '#FFFFFF' }}>
+                      <div style={{ fontWeight: 800, fontSize: '13.5px', color: 'var(--text-main)' }}>
                         {brand.name}
                       </div>
                       <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
@@ -640,7 +640,7 @@ export default function StockView() {
                   {filteredItems.length === 0 ? (
                     <tr>
                       <td colSpan={9} style={{ textAlign: 'center', padding: '36px 20px', color: 'var(--text-muted)' }}>
-                        <div style={{ fontSize: '14px', fontWeight: 700, color: '#FFFFFF', marginBottom: '6px' }}>
+                        <div style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-main)', marginBottom: '6px' }}>
                           No SKU Items in Inventory
                         </div>
                         <div style={{ fontSize: '12px', marginBottom: '14px' }}>
@@ -750,7 +750,7 @@ export default function StockView() {
                 <div style={{ fontSize: '12px', color: 'var(--rose)', fontWeight: 700, textTransform: 'uppercase' }}>
                   Total Shortage Loss
                 </div>
-                <div style={{ fontSize: '24px', fontWeight: 800, color: '#FCA5A5', fontFamily: 'var(--font-heading)', marginTop: '4px' }}>
+                <div style={{ fontSize: '24px', fontWeight: 800, color: 'var(--rose-text)', fontFamily: 'var(--font-heading)', marginTop: '4px' }}>
                   {formatCurrencyINR(Math.abs(totalDiscrepancyValuation))}
                 </div>
                 <div style={{ fontSize: '11.5px', color: 'var(--text-muted)', marginTop: '2px' }}>
@@ -759,10 +759,10 @@ export default function StockView() {
               </div>
 
               <div style={{ background: 'var(--amber-bg)', border: '1px solid var(--amber-border)', borderRadius: '10px', padding: '16px' }}>
-                <div style={{ fontSize: '12px', color: 'var(--amber)', fontWeight: 700, textTransform: 'uppercase' }}>
+                <div style={{ fontSize: '12px', color: 'var(--amber-text)', fontWeight: 700, textTransform: 'uppercase' }}>
                   Unaccounted Excess
                 </div>
-                <div style={{ fontSize: '24px', fontWeight: 800, color: '#FDE68A', fontFamily: 'var(--font-heading)', marginTop: '4px' }}>
+                <div style={{ fontSize: '24px', fontWeight: 800, color: 'var(--amber-text)', fontFamily: 'var(--font-heading)', marginTop: '4px' }}>
                   +₹450
                 </div>
                 <div style={{ fontSize: '11.5px', color: 'var(--text-muted)', marginTop: '2px' }}>
@@ -856,7 +856,7 @@ export default function StockView() {
                 padding: '12px 16px',
                 borderRadius: '8px',
                 fontSize: '12.5px',
-                color: uploadMessage.includes('Error') ? '#FCA5A5' : '#6EE7B7'
+                color: uploadMessage.includes('Error') ? 'var(--rose-text)' : 'var(--emerald-text)'
               }}>
                 {uploadMessage}
               </div>

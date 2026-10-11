@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { fmcgDb } from '../lib/fmcgDb';
+import { cloudStorage, isSupabaseConfigured } from '../lib/supabaseClient';
 
 const TenantContext = createContext();
 
@@ -13,6 +14,30 @@ export function TenantProvider({ children }) {
     setActiveAgencyState(fmcgDb.getActiveAgency());
     setAllAgencies(fmcgDb.getAllAgencies());
   };
+
+  useEffect(() => {
+    if (isSupabaseConfigured()) {
+      cloudStorage.fetchAgencies(fmcgDb.getActiveAgency()?.id || 'thulir').then(remote => {
+        if (remote && remote.length > 0) {
+          remote.forEach(r => {
+            fmcgDb.registerAgency({
+              id: r.id,
+              name: r.name,
+              tradeName: r.trade_name,
+              gstin: r.gstin,
+              hubLocation: r.hub_location,
+              brands: r.brands || [],
+              phone: r.contact_phone || '',
+              email: r.contact_email || ''
+            });
+          });
+          refreshData();
+        }
+      }).catch(err => {
+        console.warn('Tenant sync error:', err);
+      });
+    }
+  }, []);
 
   const switchAgency = (agencyId) => {
     const updated = fmcgDb.setActiveAgency(agencyId);

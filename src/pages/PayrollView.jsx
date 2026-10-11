@@ -282,11 +282,11 @@ export default function PayrollView() {
                 padding: '10px 16px',
                 border: 'none',
                 background: 'transparent',
-                color: isActive ? '#FDE68A' : 'var(--text-muted)',
+                color: isActive ? 'var(--primary)' : 'var(--text-muted)',
                 fontSize: '13px',
                 fontWeight: isActive ? 700 : 500,
                 cursor: 'pointer',
-                borderBottom: isActive ? '2px solid #F59E0B' : '2px solid transparent',
+                borderBottom: isActive ? '2px solid var(--primary)' : '2px solid transparent',
                 marginBottom: '-2px',
                 whiteSpace: 'nowrap',
                 transition: 'all 0.15s ease'
@@ -297,8 +297,8 @@ export default function PayrollView() {
               {tab.count !== undefined && (
                 <span style={{
                   fontSize: '11px',
-                  background: isActive ? 'rgba(245, 158, 11, 0.25)' : 'rgba(255,255,255,0.06)',
-                  color: isActive ? '#FDE68A' : 'var(--text-dim)',
+                  background: isActive ? 'var(--primary-subtle)' : 'var(--bg-surface-subtle)',
+                  color: isActive ? 'var(--primary-text)' : 'var(--text-dim)',
                   padding: '2px 7px',
                   borderRadius: '9999px',
                   fontWeight: 700
@@ -322,14 +322,14 @@ export default function PayrollView() {
             gap: '20px',
             marginBottom: '28px'
           }}>
-            <div className="glass-panel" style={{ padding: '22px' }}>
+            <div className="panel" style={{ padding: '22px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
                 <span style={{ fontSize: '11.5px', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }}>
                   Total Staff Strength
                 </span>
                 <Users size={18} color="#F59E0B" />
               </div>
-              <div style={{ fontSize: '28px', fontWeight: 800, color: '#FFFFFF', fontFamily: 'var(--font-heading)' }}>
+              <div style={{ fontSize: '28px', fontWeight: 800, color: 'var(--text-main)', fontFamily: 'var(--font-heading)' }}>
                 {totalStaff} Employees
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', marginTop: '4px' }}>
@@ -338,14 +338,14 @@ export default function PayrollView() {
               </div>
             </div>
 
-            <div className="glass-panel" style={{ padding: '22px' }}>
+            <div className="panel" style={{ padding: '22px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
                 <span style={{ fontSize: '11.5px', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }}>
                   Monthly Gross Commitment
                 </span>
                 <DollarSign size={18} color="var(--emerald)" />
               </div>
-              <div style={{ fontSize: '28px', fontWeight: 800, color: '#FFFFFF', fontFamily: 'var(--font-heading)' }}>
+              <div style={{ fontSize: '28px', fontWeight: 800, color: 'var(--text-main)', fontFamily: 'var(--font-heading)' }}>
                 {formatCurrencyINR(totalGrossSalaries)}
               </div>
               <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px' }}>
@@ -353,14 +353,14 @@ export default function PayrollView() {
               </div>
             </div>
 
-            <div className="glass-panel" style={{ padding: '22px' }}>
+            <div className="panel" style={{ padding: '22px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
                 <span style={{ fontSize: '11.5px', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }}>
                   September 2026 Disbursed
                 </span>
                 <CheckCircle2 size={18} color="var(--cyan)" />
               </div>
-              <div style={{ fontSize: '28px', fontWeight: 800, color: '#FFFFFF', fontFamily: 'var(--font-heading)' }}>
+              <div style={{ fontSize: '28px', fontWeight: 800, color: 'var(--text-main)', fontFamily: 'var(--font-heading)' }}>
                 {formatCurrencyINR(totalNetProcessed)}
               </div>
               <div style={{ fontSize: '12px', color: 'var(--emerald)', marginTop: '4px' }}>
@@ -368,14 +368,14 @@ export default function PayrollView() {
               </div>
             </div>
 
-            <div className="glass-panel" style={{ padding: '22px' }}>
+            <div className="panel" style={{ padding: '22px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
                 <span style={{ fontSize: '11.5px', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }}>
                   Calendar Working Days Engine
                 </span>
                 <Calendar size={18} color="var(--primary)" />
               </div>
-              <div style={{ fontSize: '28px', fontWeight: 800, color: '#FFFFFF', fontFamily: 'var(--font-heading)' }}>
+              <div style={{ fontSize: '28px', fontWeight: 800, color: 'var(--text-main)', fontFamily: 'var(--font-heading)' }}>
                 {monthCalc.workingDays} Days
               </div>
               <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px' }}>
@@ -414,7 +414,7 @@ export default function PayrollView() {
                   {employees.length === 0 ? (
                     <tr>
                       <td colSpan={7} style={{ textAlign: 'center', padding: '36px 20px', color: 'var(--text-muted)' }}>
-                        <div style={{ fontSize: '14px', fontWeight: 700, color: '#FFFFFF', marginBottom: '6px' }}>
+                        <div style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-main)', marginBottom: '6px' }}>
                           No Staff or Drivers on Roster Yet
                         </div>
                         <div style={{ fontSize: '12px', marginBottom: '14px' }}>
@@ -538,7 +538,7 @@ export default function PayrollView() {
                   {filteredEmployees.length === 0 ? (
                     <tr>
                       <td colSpan={8} style={{ textAlign: 'center', padding: '36px 20px', color: 'var(--text-muted)' }}>
-                        <div style={{ fontSize: '14px', fontWeight: 700, color: '#FFFFFF', marginBottom: '6px' }}>
+                        <div style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-main)', marginBottom: '6px' }}>
                           No Staff Members Registered
                         </div>
                         <div style={{ fontSize: '12px', marginBottom: '14px' }}>
@@ -630,7 +630,7 @@ export default function PayrollView() {
             <div>
               <h3 style={{ fontSize: '16px', fontWeight: 800 }}>Monthly Salary Calculation & Payout Register</h3>
               <p style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
-                Processing calculations for period: <strong style={{ color: '#FDE68A' }}>{config.currentPeriod}</strong> ({monthCalc.workingDays} standard working days)
+                Processing calculations for period: <strong style={{ color: 'var(--amber-text)' }}>{config.currentPeriod}</strong> ({monthCalc.workingDays} standard working days)
               </p>
             </div>
           </div>
@@ -845,9 +845,9 @@ export default function PayrollView() {
                 <div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '14px', marginBottom: '16px' }}>
                     <div>
-                      <div style={{ fontSize: '16px', fontWeight: 800, color: '#FFFFFF' }}>{activeAgency.name}</div>
+                      <div style={{ fontSize: '16px', fontWeight: 800, color: 'var(--text-main)' }}>{activeAgency.name}</div>
                       <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>GSTIN: {activeAgency.gstin} · {activeAgency.address}</div>
-                      <div style={{ fontSize: '12px', fontWeight: 700, color: '#FDE68A', marginTop: '4px' }}>
+                      <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--primary)', marginTop: '4px' }}>
                         SALARY PAYSLIP - {selectedPayslipEmp.period}
                       </div>
                     </div>
@@ -921,7 +921,7 @@ export default function PayrollView() {
                     justifyContent: 'space-between'
                   }}>
                     <span style={{ fontWeight: 800, fontSize: '13px', color: 'var(--text-main)' }}>NET PAYABLE:</span>
-                    <strong style={{ fontSize: '18px', fontWeight: 800, color: '#34D399', fontFamily: 'var(--font-mono)' }}>
+                    <strong style={{ fontSize: '18px', fontWeight: 800, color: 'var(--emerald-text)', fontFamily: 'var(--font-mono)' }}>
                       {formatCurrencyINR(selectedPayslipEmp.netPay)}
                     </strong>
                   </div>
