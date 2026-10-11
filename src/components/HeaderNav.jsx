@@ -15,13 +15,14 @@ import {
   ShieldAlert,
   Building2,
   Database,
-  Plus
+  Plus,
+  EyeOff
 } from 'lucide-react';
 import { isSupabaseConfigured } from '../lib/supabaseClient';
 
 export default function HeaderNav() {
   const { activeAgency, allAgencies, switchAgency } = useTenant();
-  const { user, logout } = useAuth();
+  const { user, logout, isAuditor } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -72,10 +73,14 @@ export default function HeaderNav() {
     }
   });
 
-  const navItems = [
+  const navItems = isAuditor ? [
+    { label: 'Godown Stock Audit', path: '/stock-audit', icon: <Package size={16} /> },
+    { label: 'Van Loading Passes', path: '/dispatch', icon: <MapPin size={16} /> }
+  ] : [
     { label: 'Operations Hub', path: '/', icon: <LayoutDashboard size={16} /> },
     { label: 'Fleet & FC Vault', path: '/fleet', icon: <Truck size={16} />, badge: complianceAlerts.length > 0 ? complianceAlerts.length : null },
     { label: 'Stock (CBB/PCS)', path: '/stock', icon: <Package size={16} /> },
+    { label: 'Blind Stock Audit', path: '/stock-audit', icon: <EyeOff size={16} /> },
     { label: 'Staff Payroll', path: '/payroll', icon: <Users size={16} /> },
     { label: 'Van Dispatch', path: '/dispatch', icon: <MapPin size={16} /> }
   ];
@@ -372,6 +377,18 @@ export default function HeaderNav() {
           <Database size={11} />
           {isSupabaseConfigured() ? 'Cloud DB' : 'Local DB'}
         </span>
+
+        {/* User Role Badge */}
+        {isAuditor ? (
+          <span className="badge badge-amber" style={{ fontSize: '11px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+            <EyeOff size={12} />
+            Godown Blind Auditor
+          </span>
+        ) : (
+          <span className="badge badge-neutral" style={{ fontSize: '11px' }}>
+            Operations Admin
+          </span>
+        )}
 
         <button
           onClick={() => { logout(); navigate('/login'); }}

@@ -21,6 +21,7 @@ export default function Login() {
   const { login } = useAuth();
   const { switchAgency, allAgencies, registerAgency } = useTenant();
 
+  const [loginRole, setLoginRole] = useState('admin'); // 'admin' | 'checker'
   const [email, setEmail] = useState('admin@thulir.com');
   const [password, setPassword] = useState('••••••••••••');
   const [loading, setLoading] = useState(false);
@@ -37,19 +38,39 @@ export default function Login() {
     brands: ''
   });
 
+  const handleRoleChange = (role) => {
+    setLoginRole(role);
+    if (role === 'checker') {
+      setEmail('checker@thulir.com');
+    } else {
+      setEmail('admin@thulir.com');
+    }
+  };
+
   const handleSubmit = (e) => {
     e?.preventDefault();
     setLoading(true);
     setTimeout(() => {
-      login(email, password);
-      navigate('/');
+      const u = login(email, password, loginRole === 'checker' ? 'Godown Stock Auditor' : 'Agency Managing Director');
+      if (u.role === 'Godown Stock Auditor') {
+        navigate('/stock-audit');
+      } else {
+        navigate('/');
+      }
     }, 200);
   };
 
   const handleSelectAgency = (agencyId, agencyEmail) => {
     switchAgency(agencyId);
-    login(agencyEmail || email, 'demo123');
-    navigate('/');
+    const targetEmail = loginRole === 'checker'
+      ? (agencyEmail ? `checker@${agencyEmail.split('@')[1] || 'thulir.com'}` : 'checker@thulir.com')
+      : (agencyEmail || email);
+    const u = login(targetEmail, 'demo123', loginRole === 'checker' ? 'Godown Stock Auditor' : 'Agency Managing Director');
+    if (u.role === 'Godown Stock Auditor') {
+      navigate('/stock-audit');
+    } else {
+      navigate('/');
+    }
   };
 
   const handleCreateAgency = (e) => {
@@ -202,25 +223,105 @@ export default function Login() {
 
         {/* Right: Sign-in & Tenant Switcher */}
         <div style={{ padding: '36px', display: 'flex', flexDirection: 'column', justifyContent: 'center', background: '#FFFFFF' }}>
-          <div style={{ marginBottom: '22px' }}>
+          <div style={{ marginBottom: '18px' }}>
             <h3 style={{ fontSize: '19px', fontWeight: 800, color: 'var(--text-main)', margin: '0 0 6px 0' }}>
               Agency Portal Access
             </h3>
             <p style={{ color: 'var(--text-muted)', fontSize: '12.5px', margin: 0 }}>
-              Select an agency tenant or enter credentials to sign in
+              Select your operational role and sign in to your agency portal
             </p>
           </div>
+
+          {/* Role Segmented Switcher */}
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: '1fr 1fr',
+            gap: '6px',
+            background: 'var(--bg-canvas)',
+            padding: '4px',
+            borderRadius: 'var(--radius-md)',
+            marginBottom: '16px',
+            border: '1px solid var(--border-medium)'
+          }}>
+            <button
+              type="button"
+              onClick={() => handleRoleChange('admin')}
+              style={{
+                padding: '7px 10px',
+                borderRadius: 'var(--radius-sm)',
+                border: 'none',
+                background: loginRole === 'admin' ? '#FFFFFF' : 'transparent',
+                boxShadow: loginRole === 'admin' ? 'var(--shadow-sm)' : 'none',
+                color: loginRole === 'admin' ? 'var(--primary-text)' : 'var(--text-muted)',
+                fontWeight: 700,
+                fontSize: '12px',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '6px',
+                transition: 'all 0.15s ease'
+              }}
+            >
+              <Building2 size={14} />
+              Operations Admin
+            </button>
+            <button
+              type="button"
+              onClick={() => handleRoleChange('checker')}
+              style={{
+                padding: '7px 10px',
+                borderRadius: 'var(--radius-sm)',
+                border: 'none',
+                background: loginRole === 'checker' ? '#FFFFFF' : 'transparent',
+                boxShadow: loginRole === 'checker' ? 'var(--shadow-sm)' : 'none',
+                color: loginRole === 'checker' ? 'var(--primary-text)' : 'var(--text-muted)',
+                fontWeight: 700,
+                fontSize: '12px',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '6px',
+                transition: 'all 0.15s ease'
+              }}
+            >
+              <Package size={14} />
+              Godown Stock Checker
+            </button>
+          </div>
+
+          {/* Blind audit protocol notice for godown staff */}
+          {loginRole === 'checker' && (
+            <div style={{
+              padding: '9px 12px',
+              borderRadius: 'var(--radius-sm)',
+              background: 'var(--amber-bg)',
+              border: '1px solid var(--amber-border)',
+              color: 'var(--amber-text)',
+              fontSize: '11.5px',
+              marginBottom: '14px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px'
+            }}>
+              <ShieldCheck size={16} />
+              <span>
+                <strong>Blind Audit Mode:</strong> System stock quantities (CBB & PCS) are strictly masked to ensure authentic, unbiased physical counts.
+              </span>
+            </div>
+          )}
 
           <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
             <div>
               <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em', color: 'var(--text-muted)', marginBottom: '6px' }}>
-                Operator / Agency Email
+                {loginRole === 'checker' ? 'Godown Staff / Auditor Email' : 'Operator / Agency Admin Email'}
               </label>
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="admin@thulir.com"
+                placeholder={loginRole === 'checker' ? 'checker@thulir.com' : 'admin@thulir.com'}
                 required
                 className="input-field"
                 style={{
@@ -269,7 +370,9 @@ export default function Login() {
                 marginTop: '4px'
               }}
             >
-              {loading ? 'Entering Agency Portal...' : 'Enter Active Agency Hub'}
+              {loading
+                ? 'Authenticating...'
+                : (loginRole === 'checker' ? 'Enter Godown Stock Audit Portal' : 'Enter Active Agency Hub')}
               <ArrowRight size={16} />
             </button>
           </form>

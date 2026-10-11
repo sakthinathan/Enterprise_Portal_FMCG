@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useTenant } from '../context/TenantContext';
 import { fmcgDb, formatCurrencyINR, formatDatePretty } from '../lib/fmcgDb';
 import { formatCbbPcs, calculateCbbPcs } from '../lib/cbbUtils';
@@ -18,6 +19,7 @@ import {
   FileSpreadsheet,
   Search,
   Filter,
+  EyeOff,
   Plus,
   ArrowRight,
   TrendingDown,
@@ -253,6 +255,10 @@ export default function StockView() {
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+          <Link to="/stock-audit" className="btn btn-secondary btn-sm" title="Open Blind Physical Count Portal used by Godown Staff">
+            <EyeOff size={14} />
+            Godown Blind Entry Mode →
+          </Link>
           <button onClick={handleShareWhatsApp} className="btn btn-emerald btn-sm">
             <MessageSquare size={14} />
             Share WhatsApp Report

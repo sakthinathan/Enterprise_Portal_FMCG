@@ -9,6 +9,7 @@ import FleetManagement from './pages/FleetManagement';
 import StockView from './pages/StockView';
 import PayrollView from './pages/PayrollView';
 import DispatchView from './pages/DispatchView';
+import GodownStockAudit from './pages/GodownStockAudit';
 
 function ProtectedLayout({ children }) {
   const { isAuthenticated } = useAuth();
@@ -38,10 +39,18 @@ function ProtectedLayout({ children }) {
   );
 }
 
+function AdminOnlyRoute({ children }) {
+  const { isAuditor } = useAuth();
+  if (isAuditor) {
+    return <Navigate to="/stock-audit" replace />;
+  }
+  return children;
+}
+
 function PublicRoute({ children }) {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, isAuditor } = useAuth();
   if (isAuthenticated) {
-    return <Navigate to="/" replace />;
+    return <Navigate to={isAuditor ? "/stock-audit" : "/"} replace />;
   }
   return children;
 }
@@ -64,7 +73,9 @@ export default function App() {
               path="/"
               element={
                 <ProtectedLayout>
-                  <HubDashboard />
+                  <AdminOnlyRoute>
+                    <HubDashboard />
+                  </AdminOnlyRoute>
                 </ProtectedLayout>
               }
             />
@@ -72,7 +83,9 @@ export default function App() {
               path="/fleet"
               element={
                 <ProtectedLayout>
-                  <FleetManagement />
+                  <AdminOnlyRoute>
+                    <FleetManagement />
+                  </AdminOnlyRoute>
                 </ProtectedLayout>
               }
             />
@@ -80,7 +93,17 @@ export default function App() {
               path="/stock"
               element={
                 <ProtectedLayout>
-                  <StockView />
+                  <AdminOnlyRoute>
+                    <StockView />
+                  </AdminOnlyRoute>
+                </ProtectedLayout>
+              }
+            />
+            <Route
+              path="/stock-audit"
+              element={
+                <ProtectedLayout>
+                  <GodownStockAudit />
                 </ProtectedLayout>
               }
             />
@@ -88,7 +111,9 @@ export default function App() {
               path="/payroll"
               element={
                 <ProtectedLayout>
-                  <PayrollView />
+                  <AdminOnlyRoute>
+                    <PayrollView />
+                  </AdminOnlyRoute>
                 </ProtectedLayout>
               }
             />
