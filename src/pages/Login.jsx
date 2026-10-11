@@ -13,7 +13,8 @@ import {
   Plus,
   X,
   Database,
-  ArrowLeft
+  ArrowLeft,
+  BookOpen
 } from 'lucide-react';
 import { isSupabaseConfigured } from '../lib/supabaseClient';
 
@@ -227,22 +228,39 @@ export default function Login() {
         {/* Right: Sign-in & Tenant Switcher */}
         <div style={{ padding: '36px', display: 'flex', flexDirection: 'column', justifyContent: 'center', background: '#FFFFFF' }}>
           <div style={{ marginBottom: '18px' }}>
-            <Link
-              to="/landing"
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '6px',
-                fontSize: '11.5px',
-                fontWeight: 600,
-                color: 'var(--primary)',
-                textDecoration: 'none',
-                marginBottom: '12px'
-              }}
-            >
-              <ArrowLeft size={13} />
-              <span>Back to Enterprise Overview & Landing Page</span>
-            </Link>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
+              <Link
+                to="/landing"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '5px',
+                  fontSize: '11.5px',
+                  fontWeight: 600,
+                  color: 'var(--primary)',
+                  textDecoration: 'none'
+                }}
+              >
+                <ArrowLeft size={13} />
+                <span>Home</span>
+              </Link>
+              <span style={{ color: 'var(--border-strong)', fontSize: '11px' }}>·</span>
+              <Link
+                to="/details"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '5px',
+                  fontSize: '11.5px',
+                  fontWeight: 600,
+                  color: 'var(--text-muted)',
+                  textDecoration: 'none'
+                }}
+              >
+                <BookOpen size={13} color="#2563EB" />
+                <span>Portal Details & Specs</span>
+              </Link>
+            </div>
             <h3 style={{ fontSize: '19px', fontWeight: 800, color: 'var(--text-main)', margin: '0 0 6px 0' }}>
               Agency Portal Access
             </h3>

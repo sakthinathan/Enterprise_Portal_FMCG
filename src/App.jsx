@@ -5,6 +5,7 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import HeaderNav from './components/HeaderNav';
 import Login from './pages/Login';
 import LandingPage from './pages/LandingPage';
+import DetailsPage from './pages/DetailsPage';
 import HubDashboard from './pages/HubDashboard';
 import FleetManagement from './pages/FleetManagement';
 import StockView from './pages/StockView';
@@ -79,7 +80,10 @@ export default function App() {
       <TenantProvider>
         <AuthProvider>
           <Routes>
+            <Route path="/home" element={<LandingPage />} />
             <Route path="/landing" element={<LandingPage />} />
+            <Route path="/details" element={<DetailsPage />} />
+            <Route path="/about" element={<DetailsPage />} />
             <Route
               path="/login"
               element={

@@ -24,7 +24,15 @@ import {
   Database,
   Search,
   AlertTriangle,
-  FileSpreadsheet
+  FileSpreadsheet,
+  BookOpen,
+  Sliders,
+  DollarSign,
+  MapPin,
+  ExternalLink,
+  Zap,
+  Shield,
+  HelpCircle
 } from 'lucide-react';
 
 export default function LandingPage() {
@@ -33,7 +41,10 @@ export default function LandingPage() {
   const { activeAgency, allAgencies, switchAgency } = useTenant();
 
   const [loginMenuOpen, setLoginMenuOpen] = useState(false);
-  const [activePreviewTab, setActivePreviewTab] = useState('blind-audit'); // 'blind-audit' | 'admin-dashboard' | 'fleet' | 'payroll'
+  const [interactiveAuditMode, setInteractiveAuditMode] = useState('masked'); // 'masked' | 'admin'
+  const [interactiveCountCbb, setInteractiveCountCbb] = useState(115);
+  const [interactiveWorkingDays, setInteractiveWorkingDays] = useState(26);
+  const [selectedRoute, setSelectedRoute] = useState('salem'); // 'salem' | 'trichy' | 'coimbatore'
 
   // Quick 1-click login handler from top menu
   const handleQuickLogin = (role) => {
@@ -47,15 +58,47 @@ export default function LandingPage() {
     }
   };
 
+  // Live Payroll Simulation calculation
+  const sampleBaseSalary = 24000;
+  const calculatedPerDayWage = Math.round(sampleBaseSalary / interactiveWorkingDays);
+  const earnedBasePay = calculatedPerDayWage * 24; // 24 days worked
+  const driverIncentive = 3500;
+  const advanceDeduction = 2000;
+  const netCalculatedSalary = earnedBasePay + driverIncentive - advanceDeduction;
+
+  // Live Route Simulation
+  const routesData = {
+    salem: { name: 'Salem Central Retailers', distance: '142 km', vehicle: 'Ashok Leyland Dost (TN-45-AK-8821)', diesel: '14.2 Liters', cbb: '185 CBB', value: '₹ 4,12,000' },
+    trichy: { name: 'Trichy Wholesale Corridor', distance: '98 km', vehicle: 'Tata Ace Gold (TN-28-BZ-4102)', diesel: '9.8 Liters', cbb: '110 CBB', value: '₹ 2,45,000' },
+    coimbatore: { name: 'Coimbatore Super Express', distance: '215 km', vehicle: 'Eicher Pro 2049 (TN-33-CQ-9914)', diesel: '26.8 Liters', cbb: '320 CBB', value: '₹ 7,80,000' }
+  };
+
   return (
     <div style={{
       minHeight: '100vh',
-      background: 'var(--bg-canvas)',
+      backgroundColor: '#F8FAFC',
+      backgroundImage: 'radial-gradient(rgba(37, 99, 235, 0.06) 1.2px, transparent 1.2px)',
+      backgroundSize: '28px 28px',
       color: 'var(--text-main)',
       display: 'flex',
       flexDirection: 'column',
-      fontFamily: 'var(--font-sans)'
+      fontFamily: 'var(--font-sans)',
+      position: 'relative',
+      overflowX: 'hidden'
     }}>
+      {/* Ambient background glow top */}
+      <div style={{
+        position: 'absolute',
+        top: 0,
+        left: '50%',
+        transform: 'translateX(-50%)',
+        width: '1000px',
+        height: '420px',
+        background: 'radial-gradient(ellipse at 50% 0%, rgba(37, 99, 235, 0.12) 0%, rgba(248, 250, 252, 0) 70%)',
+        pointerEvents: 'none',
+        zIndex: 0
+      }} />
+
       {/* ========================================================= */}
       {/* TOP HEADER / NAVBAR WITH LOGIN MENU */}
       {/* ========================================================= */}
@@ -63,13 +106,13 @@ export default function LandingPage() {
         position: 'sticky',
         top: 0,
         zIndex: 50,
-        background: 'rgba(255, 255, 255, 0.95)',
-        backdropFilter: 'blur(12px)',
+        background: 'rgba(255, 255, 255, 0.94)',
+        backdropFilter: 'blur(16px)',
         borderBottom: '1px solid var(--border-medium)',
-        boxShadow: 'var(--shadow-sm)'
+        boxShadow: '0 1px 3px rgba(0,0,0,0.04)'
       }}>
         <div style={{
-          maxWidth: '1240px',
+          maxWidth: '1280px',
           margin: '0 auto',
           padding: '12px 24px',
           display: 'flex',
@@ -77,75 +120,122 @@ export default function LandingPage() {
           justifyContent: 'space-between',
           gap: '16px'
         }}>
-          {/* Logo & Platform Name */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <div style={{
-              width: '38px',
-              height: '38px',
-              borderRadius: '8px',
-              background: 'linear-gradient(135deg, #1D4ED8 0%, #2563EB 100%)',
-              color: '#FFFFFF',
+          {/* Brand Logo & Platform Title */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
+            <Link to="/landing" style={{ display: 'flex', alignItems: 'center', gap: '10px', textDecoration: 'none' }}>
+              <div style={{
+                width: '38px',
+                height: '38px',
+                borderRadius: '10px',
+                background: 'linear-gradient(135deg, #1D4ED8 0%, #2563EB 100%)',
+                color: '#FFFFFF',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                boxShadow: '0 4px 10px rgba(37,99,235,0.3)',
+                border: '1px solid rgba(255,255,255,0.3)'
+              }}>
+                <Truck size={20} strokeWidth={2.3} />
+              </div>
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span style={{
+                    fontFamily: 'var(--font-heading)',
+                    fontSize: '17px',
+                    fontWeight: 800,
+                    letterSpacing: '-0.03em',
+                    color: '#0F172A'
+                  }}>
+                    FMCG Suite
+                  </span>
+                  <span className="badge badge-emerald" style={{ fontSize: '10px', padding: '1px 7px' }}>
+                    Enterprise OS
+                  </span>
+                </div>
+                <p style={{ fontSize: '11px', color: 'var(--text-dim)', margin: 0, fontWeight: 500 }}>
+                  Operations, Fleet, Stock & Payroll
+                </p>
+              </div>
+            </Link>
+
+            {/* Navigation links across pages */}
+            <nav style={{
               display: 'flex',
               alignItems: 'center',
-              justifyContent: 'center',
-              boxShadow: '0 2px 4px rgba(37,99,235,0.25)'
+              gap: '4px',
+              fontSize: '13px',
+              fontWeight: 600
             }}>
-              <Truck size={20} strokeWidth={2.2} />
-            </div>
-            <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span style={{
-                  fontFamily: 'var(--font-heading)',
-                  fontSize: '16px',
-                  fontWeight: 800,
-                  letterSpacing: '-0.02em',
-                  color: 'var(--text-main)'
-                }}>
-                  FMCG Suite
-                </span>
-                <span className="badge badge-emerald" style={{ fontSize: '10px', padding: '1px 6px' }}>
-                  Enterprise OS
-                </span>
-              </div>
-              <p style={{ fontSize: '11px', color: 'var(--text-dim)', margin: 0 }}>
-                Operations, Fleet, Blind Stock & Payroll
-              </p>
-            </div>
+              <Link
+                to="/landing"
+                style={{
+                  padding: '6px 12px',
+                  borderRadius: 'var(--radius-sm)',
+                  color: 'var(--primary-text)',
+                  background: 'var(--primary-subtle)',
+                  textDecoration: 'none',
+                  border: '1px solid #BFDBFE'
+                }}
+              >
+                Home
+              </Link>
+              <Link
+                to="/details"
+                style={{
+                  padding: '6px 12px',
+                  borderRadius: 'var(--radius-sm)',
+                  color: 'var(--text-muted)',
+                  textDecoration: 'none',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '5px',
+                  transition: 'color 0.15s'
+                }}
+              >
+                <BookOpen size={14} color="#2563EB" />
+                <span>Portal Details & Specs</span>
+              </Link>
+              <a
+                href="#interactive-demo"
+                style={{
+                  padding: '6px 12px',
+                  borderRadius: 'var(--radius-sm)',
+                  color: 'var(--text-muted)',
+                  textDecoration: 'none',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '5px'
+                }}
+              >
+                <Lock size={13} color="#D97706" />
+                <span>Blind Audit Demo</span>
+              </a>
+              <a
+                href="#solutions-grid"
+                style={{
+                  padding: '6px 12px',
+                  borderRadius: 'var(--radius-sm)',
+                  color: 'var(--text-muted)',
+                  textDecoration: 'none'
+                }}
+              >
+                Modules
+              </a>
+            </nav>
           </div>
 
-          {/* Center Navigation Links */}
-          <nav style={{
-            display: 'none',
-            alignItems: 'center',
-            gap: '24px',
-            fontSize: '13px',
-            fontWeight: 600
-          }} className="landing-desktop-nav">
-            <a href="#features" style={{ color: 'var(--text-muted)', textDecoration: 'none', transition: 'color 0.15s' }}>
-              Solutions
-            </a>
-            <a href="#blind-audit-section" style={{ color: 'var(--text-muted)', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '5px' }}>
-              <Lock size={13} color="#2563EB" /> Blind Stock Audit
-            </a>
-            <a href="#workflow" style={{ color: 'var(--text-muted)', textDecoration: 'none' }}>
-              Workflow
-            </a>
-            <a href="#architecture" style={{ color: 'var(--text-muted)', textDecoration: 'none' }}>
-              Multi-Tenant Architecture
-            </a>
-          </nav>
-
-          {/* Right Header Controls & Top Login Menu */}
+          {/* Right Controls & Login Menu */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             {/* Active Agency Pill */}
             <div style={{
               display: 'flex',
               alignItems: 'center',
               gap: '6px',
-              padding: '6px 10px',
+              padding: '6px 12px',
               borderRadius: 'var(--radius-md)',
               border: '1px solid var(--border-medium)',
-              background: 'var(--bg-surface-subtle)',
+              background: '#FFFFFF',
+              boxShadow: 'var(--shadow-sm)',
               fontSize: '12px',
               color: 'var(--text-main)',
               fontWeight: 600
@@ -161,16 +251,20 @@ export default function LandingPage() {
                   <button
                     onClick={() => navigate(isAuditor ? '/stock-audit' : '/')}
                     className="btn btn-primary"
-                    style={{ padding: '8px 16px', fontSize: '13px' }}
+                    style={{
+                      padding: '8px 18px',
+                      fontSize: '13px',
+                      boxShadow: '0 2px 6px rgba(37,99,235,0.25)'
+                    }}
                   >
-                    <span>Open Workspace</span>
+                    <span>Open Operations Portal</span>
                     <ArrowRight size={14} />
                   </button>
                   <button
                     onClick={() => setLoginMenuOpen(!loginMenuOpen)}
                     style={{
                       padding: '8px 10px',
-                      background: 'var(--bg-surface)',
+                      background: '#FFFFFF',
                       border: '1px solid var(--border-medium)',
                       borderRadius: 'var(--radius-md)',
                       cursor: 'pointer',
@@ -186,23 +280,22 @@ export default function LandingPage() {
                   </button>
                 </div>
               ) : (
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <button
-                    onClick={() => setLoginMenuOpen(!loginMenuOpen)}
-                    className="btn btn-primary"
-                    style={{
-                      padding: '8px 16px',
-                      fontSize: '13px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '8px'
-                    }}
-                  >
-                    <LogIn size={15} />
-                    <span>Login Menu</span>
-                    <ChevronDown size={14} />
-                  </button>
-                </div>
+                <button
+                  onClick={() => setLoginMenuOpen(!loginMenuOpen)}
+                  className="btn btn-primary"
+                  style={{
+                    padding: '8px 18px',
+                    fontSize: '13px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    boxShadow: '0 2px 6px rgba(37,99,235,0.3)'
+                  }}
+                >
+                  <LogIn size={15} />
+                  <span>Login Menu</span>
+                  <ChevronDown size={14} />
+                </button>
               )}
 
               {/* DROPDOWN MENU */}
@@ -211,25 +304,25 @@ export default function LandingPage() {
                   position: 'absolute',
                   right: 0,
                   top: 'calc(100% + 8px)',
-                  width: '320px',
+                  width: '330px',
                   background: '#FFFFFF',
                   borderRadius: 'var(--radius-lg)',
                   border: '1px solid var(--border-strong)',
-                  boxShadow: 'var(--shadow-lg)',
-                  padding: '10px',
+                  boxShadow: '0 12px 28px -6px rgba(15,23,42,0.15)',
+                  padding: '12px',
                   zIndex: 100,
                   animation: 'fadeIn 0.15s ease'
                 }}>
                   <div style={{
-                    padding: '8px 10px 10px',
+                    padding: '6px 8px 10px',
                     borderBottom: '1px solid var(--border-subtle)',
-                    marginBottom: '8px'
+                    marginBottom: '10px'
                   }}>
-                    <span style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', color: 'var(--text-dim)' }}>
-                      Select User Login Portal
-                    </span>
-                    <p style={{ fontSize: '12px', color: 'var(--text-muted)', margin: '2px 0 0' }}>
-                      Choose your role to access designated portal modules.
+                    <div style={{ fontSize: '11px', fontWeight: 800, textTransform: 'uppercase', color: 'var(--text-dim)', letterSpacing: '0.05em' }}>
+                      Choose Portal Login Role
+                    </div>
+                    <p style={{ fontSize: '12px', color: 'var(--text-muted)', margin: '3px 0 0' }}>
+                      Access dedicated operations or masked audit consoles
                     </p>
                   </div>
 
@@ -237,7 +330,7 @@ export default function LandingPage() {
                   <div
                     onClick={() => handleQuickLogin('admin')}
                     style={{
-                      padding: '10px 12px',
+                      padding: '12px',
                       borderRadius: 'var(--radius-md)',
                       cursor: 'pointer',
                       border: '1px solid var(--border-subtle)',
@@ -256,16 +349,16 @@ export default function LandingPage() {
                   >
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <span style={{ fontSize: '16px' }}>🏢</span>
+                        <span style={{ fontSize: '17px' }}>🏢</span>
                         <strong style={{ fontSize: '13px', color: 'var(--text-main)' }}>Operations Admin</strong>
                       </div>
-                      <span className="badge badge-cyan" style={{ fontSize: '10px' }}>Full Access</span>
+                      <span className="badge badge-cyan" style={{ fontSize: '10px' }}>Full Suite</span>
                     </div>
-                    <p style={{ fontSize: '11.5px', color: 'var(--text-muted)', margin: 0 }}>
-                      Fleet logistics, Excel upload, unmasked reconciliation, payroll & van dispatch.
+                    <p style={{ fontSize: '11.5px', color: 'var(--text-muted)', margin: 0, lineHeight: 1.4 }}>
+                      Fleet logistics, unmasked stock reconciliation, staff payroll, and van loading passes.
                     </p>
-                    <div style={{ marginTop: '6px', fontSize: '11px', color: '#2563EB', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px' }}>
-                      Sign in as admin@thulir.com <ArrowRight size={11} />
+                    <div style={{ marginTop: '8px', fontSize: '11px', color: '#2563EB', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '4px' }}>
+                      Sign in as admin@thulir.com <ArrowRight size={12} />
                     </div>
                   </div>
 
@@ -273,12 +366,12 @@ export default function LandingPage() {
                   <div
                     onClick={() => handleQuickLogin('checker')}
                     style={{
-                      padding: '10px 12px',
+                      padding: '12px',
                       borderRadius: 'var(--radius-md)',
                       cursor: 'pointer',
                       border: '1px solid var(--border-subtle)',
                       background: 'var(--bg-canvas)',
-                      marginBottom: '8px',
+                      marginBottom: '10px',
                       transition: 'all 0.15s ease'
                     }}
                     onMouseEnter={(e) => {
@@ -292,20 +385,20 @@ export default function LandingPage() {
                   >
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <span style={{ fontSize: '16px' }}>📦</span>
+                        <span style={{ fontSize: '17px' }}>📦</span>
                         <strong style={{ fontSize: '13px', color: 'var(--text-main)' }}>Godown Stock Auditor</strong>
                       </div>
-                      <span className="badge badge-amber" style={{ fontSize: '10px' }}>Blind Audit</span>
+                      <span className="badge badge-amber" style={{ fontSize: '10px' }}>Blind Mode</span>
                     </div>
-                    <p style={{ fontSize: '11.5px', color: 'var(--text-muted)', margin: 0 }}>
-                      Physical CBB & PCS logging. System stock numbers masked to prevent fraud.
+                    <p style={{ fontSize: '11.5px', color: 'var(--text-muted)', margin: 0, lineHeight: 1.4 }}>
+                      Physical CBB & PCS floor entry. System quantities masked to prevent fraud and bias.
                     </p>
-                    <div style={{ marginTop: '6px', fontSize: '11px', color: '#059669', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px' }}>
-                      Sign in as checker@thulir.com <ArrowRight size={11} />
+                    <div style={{ marginTop: '8px', fontSize: '11px', color: '#059669', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '4px' }}>
+                      Sign in as checker@thulir.com <ArrowRight size={12} />
                     </div>
                   </div>
 
-                  {/* Bottom link to main login form */}
+                  {/* Links */}
                   <div style={{
                     paddingTop: '8px',
                     borderTop: '1px solid var(--border-subtle)',
@@ -324,13 +417,14 @@ export default function LandingPage() {
                         color: 'var(--text-muted)',
                         fontSize: '11.5px',
                         cursor: 'pointer',
-                        fontWeight: 600,
-                        padding: '4px 6px'
+                        fontWeight: 600
                       }}
                     >
                       Open Standard Login Page →
                     </button>
-                    <span style={{ fontSize: '10.5px', color: 'var(--text-dim)' }}>v2.4 LTS</span>
+                    <Link to="/details" onClick={() => setLoginMenuOpen(false)} style={{ fontSize: '11px', color: 'var(--primary)', textDecoration: 'none', fontWeight: 600 }}>
+                      Specs & Docs
+                    </Link>
                   </div>
                 </div>
               )}
@@ -340,63 +434,70 @@ export default function LandingPage() {
       </header>
 
       {/* ========================================================= */}
-      {/* HERO SECTION */}
+      {/* HERO SECTION (RICH SAAS HERO WITH GLOW & LIVE CONTROLS) */}
       {/* ========================================================= */}
       <section style={{
-        padding: '64px 24px 48px',
-        maxWidth: '1240px',
+        padding: '72px 24px 56px',
+        maxWidth: '1280px',
         margin: '0 auto',
         width: '100%',
-        textAlign: 'center'
+        textAlign: 'center',
+        position: 'relative',
+        zIndex: 1
       }}>
-        {/* Top Feature Pill */}
+        {/* Floating pill badge */}
         <div style={{
           display: 'inline-flex',
           alignItems: 'center',
           gap: '8px',
-          padding: '6px 14px',
+          padding: '7px 16px',
           borderRadius: '999px',
-          background: 'var(--primary-subtle)',
+          background: 'rgba(255, 255, 255, 0.9)',
           border: '1px solid #BFDBFE',
-          color: 'var(--primary)',
-          fontSize: '12px',
+          boxShadow: '0 4px 12px rgba(37,99,235,0.08)',
+          color: '#1D4ED8',
+          fontSize: '12.5px',
           fontWeight: 700,
-          marginBottom: '24px'
+          marginBottom: '28px'
         }}>
-          <Sparkles size={14} />
+          <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#059669', display: 'inline-block', boxShadow: '0 0 0 3px rgba(5,150,105,0.2)' }} />
           <span>FMCG Enterprise Operations Business Suite · Multi-Tenant Cloud Architecture</span>
+          <Link to="/details" style={{ display: 'inline-flex', alignItems: 'center', gap: '3px', color: '#2563EB', marginLeft: '6px', textDecoration: 'none' }}>
+            <span>Explore Specs</span>
+            <ArrowRight size={12} />
+          </Link>
         </div>
 
-        {/* Main Headline */}
+        {/* Main Headline with high-contrast executive styling */}
         <h1 style={{
-          fontSize: 'clamp(2rem, 4vw, 3.2rem)',
-          fontWeight: 800,
-          lineHeight: 1.18,
-          letterSpacing: '-0.03em',
-          color: 'var(--text-main)',
-          maxWidth: '920px',
-          margin: '0 auto 20px'
+          fontSize: 'clamp(2.3rem, 4.6vw, 3.6rem)',
+          fontWeight: 900,
+          lineHeight: 1.15,
+          letterSpacing: '-0.035em',
+          color: '#0F172A',
+          maxWidth: '980px',
+          margin: '0 auto 22px'
         }}>
-          The Intelligent Operations OS for FMCG Super-Stockists & Distribution Hubs
+          The Intelligent Operating System for FMCG Super-Stockists & Distribution Hubs
         </h1>
 
-        {/* Subhead */}
+        {/* Subtitle */}
         <p style={{
-          fontSize: 'clamp(1rem, 1.8vw, 1.15rem)',
-          color: 'var(--text-muted)',
-          maxWidth: '780px',
-          margin: '0 auto 36px',
-          lineHeight: 1.6
+          fontSize: 'clamp(1.05rem, 1.8vw, 1.2rem)',
+          color: '#475569',
+          maxWidth: '820px',
+          margin: '0 auto 40px',
+          lineHeight: 1.65
         }}>
-          Eliminate godown inventory leakages with <strong>masked blind stock audits</strong>, optimize multi-route vehicle fleet logistics, generate instant van delivery passes, and automate complex staff payroll — all in one unified light enterprise portal.
+          Eliminate godown inventory leakages with <strong>masked blind stock audits</strong>, optimize multi-route commercial vehicle logistics, generate instant van delivery passes, and automate complex staff payroll — all in one unified light enterprise portal.
         </p>
 
-        {/* Primary Action Buttons */}
+        {/* Action Button Row */}
         <div style={{
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          gap: '14px',
+          gap: '16px',
           flexWrap: 'wrap',
           marginBottom: '54px'
         }}>
@@ -404,21 +505,21 @@ export default function LandingPage() {
             onClick={() => handleQuickLogin('admin')}
             className="btn btn-primary"
             style={{
-              padding: '12px 24px',
-              fontSize: '14px',
+              padding: '13px 28px',
+              fontSize: '14.5px',
               fontWeight: 700,
-              boxShadow: 'var(--shadow-md)'
+              boxShadow: '0 6px 16px rgba(37,99,235,0.28)'
             }}
           >
             <span>Launch Operations Portal</span>
-            <ArrowRight size={16} />
+            <ArrowRight size={17} />
           </button>
 
           <button
             onClick={() => handleQuickLogin('checker')}
             style={{
-              padding: '12px 22px',
-              fontSize: '14px',
+              padding: '13px 26px',
+              fontSize: '14.5px',
               fontWeight: 700,
               background: '#FFFFFF',
               color: '#0F172A',
@@ -428,44 +529,57 @@ export default function LandingPage() {
               display: 'flex',
               alignItems: 'center',
               gap: '8px',
-              transition: 'background 0.15s'
+              boxShadow: 'var(--shadow-sm)',
+              transition: 'all 0.15s ease'
             }}
             onMouseEnter={(e) => e.currentTarget.style.background = '#F8FAFC'}
             onMouseLeave={(e) => e.currentTarget.style.background = '#FFFFFF'}
           >
-            <Lock size={16} color="#059669" />
+            <Lock size={17} color="#059669" />
             <span>Godown Blind Stock Audit</span>
-            <span className="badge badge-amber" style={{ fontSize: '10px' }}>Masked</span>
+            <span className="badge badge-amber" style={{ fontSize: '10.5px' }}>Masked</span>
           </button>
 
-          <button
-            onClick={() => navigate('/login')}
-            className="btn btn-secondary"
-            style={{ padding: '12px 20px', fontSize: '14px' }}
+          <Link
+            to="/details"
+            style={{
+              padding: '13px 22px',
+              fontSize: '14px',
+              fontWeight: 700,
+              background: '#FFFFFF',
+              color: '#475569',
+              border: '1px solid var(--border-medium)',
+              borderRadius: 'var(--radius-md)',
+              textDecoration: 'none',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              boxShadow: 'var(--shadow-sm)'
+            }}
           >
-            <LogIn size={15} />
-            <span>Standard Login</span>
-          </button>
+            <BookOpen size={16} color="#2563EB" />
+            <span>Portal Specifications</span>
+          </Link>
         </div>
 
         {/* Live Key Metrics Bar */}
         <div style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(230px, 1fr))',
           gap: '16px',
-          maxWidth: '1060px',
+          maxWidth: '1120px',
           margin: '0 auto',
           padding: '24px',
-          background: 'var(--bg-surface)',
+          background: '#FFFFFF',
           border: '1px solid var(--border-medium)',
           borderRadius: 'var(--radius-lg)',
-          boxShadow: 'var(--shadow-sm)'
+          boxShadow: '0 10px 25px -5px rgba(15,23,42,0.06)'
         }}>
           <div style={{ textAlign: 'left', padding: '8px 12px' }}>
-            <div style={{ fontSize: '26px', fontWeight: 800, color: 'var(--primary)', fontFamily: 'var(--font-heading)' }}>
+            <div style={{ fontSize: '28px', fontWeight: 900, color: '#2563EB', fontFamily: 'var(--font-heading)' }}>
               99.9%
             </div>
-            <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-main)', marginTop: '2px' }}>
+            <div style={{ fontSize: '12.5px', fontWeight: 700, color: 'var(--text-main)', marginTop: '2px' }}>
               Blind Inventory Accuracy
             </div>
             <p style={{ fontSize: '11px', color: 'var(--text-dim)', margin: '2px 0 0' }}>
@@ -474,10 +588,10 @@ export default function LandingPage() {
           </div>
 
           <div style={{ textAlign: 'left', padding: '8px 12px', borderLeft: '1px solid var(--border-subtle)' }}>
-            <div style={{ fontSize: '26px', fontWeight: 800, color: '#059669', fontFamily: 'var(--font-heading)' }}>
+            <div style={{ fontSize: '28px', fontWeight: 900, color: '#059669', fontFamily: 'var(--font-heading)' }}>
               10,000+
             </div>
-            <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-main)', marginTop: '2px' }}>
+            <div style={{ fontSize: '12.5px', fontWeight: 700, color: 'var(--text-main)', marginTop: '2px' }}>
               Daily Cartons Dispatched
             </div>
             <p style={{ fontSize: '11px', color: 'var(--text-dim)', margin: '2px 0 0' }}>
@@ -486,10 +600,10 @@ export default function LandingPage() {
           </div>
 
           <div style={{ textAlign: 'left', padding: '8px 12px', borderLeft: '1px solid var(--border-subtle)' }}>
-            <div style={{ fontSize: '26px', fontWeight: 800, color: '#0284C7', fontFamily: 'var(--font-heading)' }}>
+            <div style={{ fontSize: '28px', fontWeight: 900, color: '#0284C7', fontFamily: 'var(--font-heading)' }}>
               100%
             </div>
-            <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-main)', marginTop: '2px' }}>
+            <div style={{ fontSize: '12.5px', fontWeight: 700, color: 'var(--text-main)', marginTop: '2px' }}>
               Supabase Cloud Sync
             </div>
             <p style={{ fontSize: '11px', color: 'var(--text-dim)', margin: '2px 0 0' }}>
@@ -498,10 +612,10 @@ export default function LandingPage() {
           </div>
 
           <div style={{ textAlign: 'left', padding: '8px 12px', borderLeft: '1px solid var(--border-subtle)' }}>
-            <div style={{ fontSize: '26px', fontWeight: 800, color: '#D97706', fontFamily: 'var(--font-heading)' }}>
+            <div style={{ fontSize: '28px', fontWeight: 900, color: '#D97706', fontFamily: 'var(--font-heading)' }}>
               Multi-Agency
             </div>
-            <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-main)', marginTop: '2px' }}>
+            <div style={{ fontSize: '12.5px', fontWeight: 700, color: 'var(--text-main)', marginTop: '2px' }}>
               Tenant Isolation
             </div>
             <p style={{ fontSize: '11px', color: 'var(--text-dim)', margin: '2px 0 0' }}>
@@ -512,665 +626,614 @@ export default function LandingPage() {
       </section>
 
       {/* ========================================================= */}
-      {/* FEATURE SPOTLIGHT: GODOWN BLIND AUDIT PROTOCOL */}
+      {/* INTERACTIVE DEMO 1: THE BLIND AUDIT SIMULATOR WIDGET */}
       {/* ========================================================= */}
-      <section id="blind-audit-section" style={{
+      <section id="interactive-demo" style={{
         padding: '64px 24px',
         background: '#FFFFFF',
         borderTop: '1px solid var(--border-medium)',
         borderBottom: '1px solid var(--border-medium)'
       }}>
-        <div style={{ maxWidth: '1240px', margin: '0 auto' }}>
-          <div style={{ textAlign: 'center', marginBottom: '40px' }}>
-            <div style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '6px',
-              padding: '4px 10px',
-              borderRadius: 'var(--radius-sm)',
-              background: 'var(--amber-bg)',
-              color: 'var(--amber-text)',
-              border: '1px solid var(--amber-border)',
-              fontSize: '11px',
-              fontWeight: 700,
-              textTransform: 'uppercase',
-              letterSpacing: '0.05em',
-              marginBottom: '12px'
-            }}>
-              <Lock size={12} /> Fraud Prevention Architecture
-            </div>
-            <h2 style={{ fontSize: '1.9rem', fontWeight: 800, letterSpacing: '-0.02em', color: 'var(--text-main)' }}>
-              Why Masked Godown Stock Auditing Changes Everything
+        <div style={{ maxWidth: '1280px', margin: '0 auto' }}>
+          <div style={{ textAlign: 'center', marginBottom: '36px' }}>
+            <span className="badge badge-amber" style={{ marginBottom: '8px' }}>Interactive Innovation</span>
+            <h2 style={{ fontSize: '2rem', fontWeight: 800, color: '#0F172A', letterSpacing: '-0.02em' }}>
+              Experience the Masked Blind Stock Audit Simulator
             </h2>
             <p style={{ fontSize: '14px', color: 'var(--text-muted)', maxWidth: '720px', margin: '8px auto 0' }}>
-              Traditional FMCG godowns face widespread stock pilferage and fake tallying because stock checkers can see the target book numbers. Our system enforces a strict <strong>blind count protocol</strong>.
+              Toggle between the <strong>Godown Auditor View</strong> (where system quantities are completely sealed) and the <strong>Operations Admin View</strong> (where financial variance and pilferage are calculated in real time).
             </p>
           </div>
 
-          {/* Side by Side Comparison Grid */}
+          {/* Interactive Control Center Container */}
+          <div style={{
+            background: 'var(--bg-canvas)',
+            borderRadius: 'var(--radius-lg)',
+            border: '1px solid var(--border-strong)',
+            boxShadow: '0 12px 30px -10px rgba(15,23,42,0.08)',
+            overflow: 'hidden'
+          }}>
+            {/* Top Toolbar with Live Mode Switch */}
+            <div style={{
+              padding: '14px 24px',
+              background: '#FFFFFF',
+              borderBottom: '1px solid var(--border-medium)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              flexWrap: 'wrap',
+              gap: '12px'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-muted)' }}>
+                  ACTIVE SIMULATION MODE:
+                </span>
+                <div style={{
+                  display: 'flex',
+                  background: 'var(--bg-canvas)',
+                  padding: '3px',
+                  borderRadius: 'var(--radius-md)',
+                  border: '1px solid var(--border-medium)'
+                }}>
+                  <button
+                    onClick={() => setInteractiveAuditMode('masked')}
+                    style={{
+                      padding: '6px 14px',
+                      borderRadius: 'var(--radius-sm)',
+                      border: 'none',
+                      background: interactiveAuditMode === 'masked' ? '#059669' : 'transparent',
+                      color: interactiveAuditMode === 'masked' ? '#FFFFFF' : 'var(--text-muted)',
+                      fontWeight: 700,
+                      fontSize: '12px',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px'
+                    }}
+                  >
+                    <Lock size={13} />
+                    <span>Godown Auditor (Masked)</span>
+                  </button>
+
+                  <button
+                    onClick={() => setInteractiveAuditMode('admin')}
+                    style={{
+                      padding: '6px 14px',
+                      borderRadius: 'var(--radius-sm)',
+                      border: 'none',
+                      background: interactiveAuditMode === 'admin' ? '#2563EB' : 'transparent',
+                      color: interactiveAuditMode === 'admin' ? '#FFFFFF' : 'var(--text-muted)',
+                      fontWeight: 700,
+                      fontSize: '12px',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px'
+                    }}
+                  >
+                    <BarChart3 size={13} />
+                    <span>Operations Admin (Unmasked)</span>
+                  </button>
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span className="badge badge-neutral">SKU: ITC-ATT-10K</span>
+                <span className="badge badge-emerald">Real-Time Sync Active</span>
+              </div>
+            </div>
+
+            {/* Interactive Simulator Data Grid */}
+            <div style={{ padding: '28px' }}>
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+                gap: '20px',
+                marginBottom: '24px'
+              }}>
+                {/* Item Details Card */}
+                <div style={{ padding: '20px', background: '#FFFFFF', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-medium)' }}>
+                  <div style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', color: 'var(--text-dim)', marginBottom: '4px' }}>
+                    CATALOG MASTER ITEM
+                  </div>
+                  <h3 style={{ fontSize: '16px', fontWeight: 800, margin: '0 0 6px 0' }}>
+                    Aashirvaad Superior MP Atta 10kg
+                  </h3>
+                  <div style={{ fontSize: '12.5px', color: 'var(--text-muted)' }}>
+                    Brand: <strong>ITC Foods</strong> · Conversion: <strong>4 Pcs / Carton (CBB)</strong> · MRP: <strong>₹ 480.00</strong>
+                  </div>
+                </div>
+
+                {/* System Stock Card (Conditionally Masked) */}
+                <div style={{
+                  padding: '20px',
+                  background: interactiveAuditMode === 'masked' ? '#FFFBEB' : '#EFF6FF',
+                  borderRadius: 'var(--radius-md)',
+                  border: `1px solid ${interactiveAuditMode === 'masked' ? '#FDE68A' : '#BFDBFE'}`,
+                  transition: 'all 0.2s ease'
+                }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                    <span style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', color: interactiveAuditMode === 'masked' ? '#92400E' : '#1E40AF' }}>
+                      SYSTEM BOOK STOCK
+                    </span>
+                    <span className={`badge ${interactiveAuditMode === 'masked' ? 'badge-amber' : 'badge-cyan'}`} style={{ fontSize: '10px' }}>
+                      {interactiveAuditMode === 'masked' ? '🔒 SECURELY MASKED' : 'UNMASKED'}
+                    </span>
+                  </div>
+
+                  {interactiveAuditMode === 'masked' ? (
+                    <div>
+                      <div style={{
+                        fontSize: '18px',
+                        fontWeight: 900,
+                        color: '#B45309',
+                        fontFamily: 'var(--font-mono)',
+                        padding: '10px 0'
+                      }}>
+                        •••••• MASKED ••••••
+                      </div>
+                      <p style={{ fontSize: '11.5px', color: '#92400E', margin: 0 }}>
+                        Hidden on warehouse tablet to prevent unverified copy-pasting. Staff must count pallets physically.
+                      </p>
+                    </div>
+                  ) : (
+                    <div>
+                      <div style={{ fontSize: '24px', fontWeight: 900, color: '#1D4ED8', padding: '6px 0' }}>
+                        120 CBB <span style={{ fontSize: '15px', color: 'var(--text-dim)' }}>+ 0 Loose PCS</span>
+                      </div>
+                      <p style={{ fontSize: '11.5px', color: '#1E40AF', margin: 0 }}>
+                        Book quantity from uploaded StockMRP.xlsx (Total: 480 individual pieces).
+                      </p>
+                    </div>
+                  )}
+                </div>
+
+                {/* Physical Count Input Card */}
+                <div style={{ padding: '20px', background: '#FFFFFF', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-medium)' }}>
+                  <div style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', color: 'var(--text-dim)', marginBottom: '8px' }}>
+                    PHYSICAL GODOWN COUNT ENTRY
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <div style={{ flex: 1 }}>
+                      <label style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: 600 }}>Cartons (CBB)</label>
+                      <input
+                        type="number"
+                        value={interactiveCountCbb}
+                        onChange={(e) => setInteractiveCountCbb(Number(e.target.value) || 0)}
+                        style={{
+                          width: '100%',
+                          padding: '8px 12px',
+                          border: '1px solid var(--border-strong)',
+                          borderRadius: 'var(--radius-md)',
+                          fontSize: '15px',
+                          fontWeight: 700
+                        }}
+                      />
+                    </div>
+                    <div style={{ width: '80px' }}>
+                      <label style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: 600 }}>PCS (Loose)</label>
+                      <input
+                        type="number"
+                        disabled
+                        value={0}
+                        style={{
+                          width: '100%',
+                          padding: '8px 12px',
+                          border: '1px solid var(--border-medium)',
+                          borderRadius: 'var(--radius-md)',
+                          background: '#F1F5F9',
+                          fontSize: '15px',
+                          fontWeight: 700
+                        }}
+                      />
+                    </div>
+                  </div>
+                  <div style={{ marginTop: '8px', fontSize: '11px', color: 'var(--text-dim)' }}>
+                    Try changing the carton count (e.g. 115 vs 120) to see variance.
+                  </div>
+                </div>
+              </div>
+
+              {/* Real-Time Variance Calculation Bar */}
+              <div style={{
+                padding: '16px 20px',
+                background: interactiveCountCbb === 120 ? '#ECFDF5' : '#FEF2F2',
+                borderRadius: 'var(--radius-md)',
+                border: `1px solid ${interactiveCountCbb === 120 ? '#A7F3D0' : '#FECACA'}`,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                flexWrap: 'wrap',
+                gap: '12px'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  {interactiveCountCbb === 120 ? (
+                    <CheckCircle2 size={20} color="#059669" />
+                  ) : (
+                    <AlertTriangle size={20} color="#DC2626" />
+                  )}
+                  <div>
+                    <strong style={{ fontSize: '13.5px', color: interactiveCountCbb === 120 ? '#065F46' : '#991B1B' }}>
+                      {interactiveCountCbb === 120 ? 'PERFECT RECONCILIATION: ZERO VARIANCE' : `DISCREPANCY DETECTED: ${interactiveCountCbb - 120} CARTONS VARIANCE`}
+                    </strong>
+                    <div style={{ fontSize: '12px', color: interactiveCountCbb === 120 ? '#047857' : '#B91C1C' }}>
+                      {interactiveAuditMode === 'masked'
+                        ? 'Under Blind Audit mode, the godown checker cannot see this discrepancy until management unmasks it.'
+                        : `Admin Impact: ${(interactiveCountCbb - 120) * 4} pieces shortage = ₹ ${((interactiveCountCbb - 120) * 4 * 120).toLocaleString()} financial variance.`}
+                    </div>
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <button onClick={() => handleQuickLogin('checker')} className="btn btn-emerald btn-sm">
+                    <span>Try Real Auditor Portal</span>
+                    <ArrowRight size={13} />
+                  </button>
+                  <Link to="/details" className="btn btn-secondary btn-sm" style={{ textDecoration: 'none' }}>
+                    View Full Mathematical Specs
+                  </Link>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ========================================================= */}
+      {/* INTERACTIVE DEMO 2: LIVE PAYROLL & FLEET SIMULATORS */}
+      {/* ========================================================= */}
+      <section style={{ padding: '64px 24px', maxWidth: '1280px', margin: '0 auto', width: '100%' }}>
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))',
+          gap: '24px'
+        }}>
+          {/* Payroll Simulator Card */}
+          <div style={{
+            background: '#FFFFFF',
+            borderRadius: 'var(--radius-lg)',
+            border: '1px solid var(--border-medium)',
+            boxShadow: 'var(--shadow-sm)',
+            padding: '28px'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+              <Users size={18} color="#2563EB" />
+              <h3 style={{ fontSize: '17px', fontWeight: 800, margin: 0 }}>
+                Interactive 26-Day Payroll Calculator
+              </h3>
+            </div>
+            <p style={{ fontSize: '12.5px', color: 'var(--text-muted)', marginBottom: '20px' }}>
+              Drag the working-days slider to see dynamic per-day rate computation used by Tamil Nadu FMCG distributors.
+            </p>
+
+            <div style={{ marginBottom: '20px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', fontWeight: 700, marginBottom: '6px' }}>
+                <span>Standard Working Days per Month:</span>
+                <span style={{ color: '#2563EB', fontSize: '14px' }}>{interactiveWorkingDays} Days</span>
+              </div>
+              <input
+                type="range"
+                min="24"
+                max="30"
+                value={interactiveWorkingDays}
+                onChange={(e) => setInteractiveWorkingDays(Number(e.target.value))}
+                style={{ width: '100%', cursor: 'pointer' }}
+              />
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10.5px', color: 'var(--text-dim)', marginTop: '4px' }}>
+                <span>24 Days (6-Day week)</span>
+                <span>26 Days (Statutory Default)</span>
+                <span>30 Days (Continuous)</span>
+              </div>
+            </div>
+
+            <div style={{ background: 'var(--bg-canvas)', padding: '16px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-subtle)', marginBottom: '16px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', marginBottom: '6px' }}>
+                <span>Base Salary (Monthly):</span>
+                <strong>₹ {sampleBaseSalary.toLocaleString()}</strong>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', marginBottom: '6px' }}>
+                <span>Per-Day Wage Rate:</span>
+                <strong style={{ color: '#2563EB' }}>₹ {calculatedPerDayWage} / day</strong>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', marginBottom: '6px' }}>
+                <span>Earned Base (24 Days worked):</span>
+                <span>₹ {earnedBasePay.toLocaleString()}</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', marginBottom: '8px' }}>
+                <span>Driver Km Incentives:</span>
+                <span style={{ color: '#059669' }}>+ ₹ {driverIncentive.toLocaleString()}</span>
+              </div>
+              <div style={{ borderTop: '1px solid var(--border-medium)', paddingTop: '8px', display: 'flex', justifyContent: 'space-between', fontSize: '14px', fontWeight: 800 }}>
+                <span>Net Payable Salary:</span>
+                <span style={{ color: '#059669' }}>₹ {netCalculatedSalary.toLocaleString()}</span>
+              </div>
+            </div>
+
+            <Link to="/details" style={{ fontSize: '12px', color: '#2563EB', fontWeight: 600, textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '4px' }}>
+              Read full payroll formulas & statutory rules <ArrowRight size={12} />
+            </Link>
+          </div>
+
+          {/* Fleet Route Simulator Card */}
+          <div style={{
+            background: '#FFFFFF',
+            borderRadius: 'var(--radius-lg)',
+            border: '1px solid var(--border-medium)',
+            boxShadow: 'var(--shadow-sm)',
+            padding: '28px'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+              <Truck size={18} color="#059669" />
+              <h3 style={{ fontSize: '17px', fontWeight: 800, margin: 0 }}>
+                Live Delivery Route & Van Dispatch Simulator
+              </h3>
+            </div>
+            <p style={{ fontSize: '12.5px', color: 'var(--text-muted)', marginBottom: '16px' }}>
+              Select an active delivery corridor to inspect real-time fuel, vehicle capacity, and cargo volume.
+            </p>
+
+            {/* Route Selector Tabs */}
+            <div style={{ display: 'flex', gap: '6px', marginBottom: '16px' }}>
+              {['salem', 'trichy', 'coimbatore'].map((r) => (
+                <button
+                  key={r}
+                  onClick={() => setSelectedRoute(r)}
+                  style={{
+                    flex: 1,
+                    padding: '7px 8px',
+                    borderRadius: 'var(--radius-sm)',
+                    border: `1px solid ${selectedRoute === r ? '#059669' : 'var(--border-medium)'}`,
+                    background: selectedRoute === r ? '#ECFDF5' : '#FFFFFF',
+                    color: selectedRoute === r ? '#065F46' : 'var(--text-muted)',
+                    fontWeight: 700,
+                    fontSize: '11.5px',
+                    cursor: 'pointer',
+                    textTransform: 'capitalize'
+                  }}
+                >
+                  {r} Route
+                </button>
+              ))}
+            </div>
+
+            {/* Selected Route Details */}
+            <div style={{ background: 'var(--bg-canvas)', padding: '16px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-subtle)', marginBottom: '16px' }}>
+              <div style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-main)', marginBottom: '4px' }}>
+                {routesData[selectedRoute].name}
+              </div>
+              <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '12px' }}>
+                Vehicle: <strong>{routesData[selectedRoute].vehicle}</strong>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                <div style={{ padding: '8px', background: '#FFFFFF', borderRadius: '4px', border: '1px solid var(--border-subtle)' }}>
+                  <div style={{ fontSize: '10.5px', color: 'var(--text-dim)' }}>ROUNDTRIP DISTANCE</div>
+                  <strong style={{ fontSize: '13px' }}>{routesData[selectedRoute].distance}</strong>
+                </div>
+                <div style={{ padding: '8px', background: '#FFFFFF', borderRadius: '4px', border: '1px solid var(--border-subtle)' }}>
+                  <div style={{ fontSize: '10.5px', color: 'var(--text-dim)' }}>DIESEL ESTIMATE</div>
+                  <strong style={{ fontSize: '13px', color: '#D97706' }}>{routesData[selectedRoute].diesel}</strong>
+                </div>
+                <div style={{ padding: '8px', background: '#FFFFFF', borderRadius: '4px', border: '1px solid var(--border-subtle)' }}>
+                  <div style={{ fontSize: '10.5px', color: 'var(--text-dim)' }}>VAN LOAD (CBB)</div>
+                  <strong style={{ fontSize: '13px', color: '#2563EB' }}>{routesData[selectedRoute].cbb}</strong>
+                </div>
+                <div style={{ padding: '8px', background: '#FFFFFF', borderRadius: '4px', border: '1px solid var(--border-subtle)' }}>
+                  <div style={{ fontSize: '10.5px', color: 'var(--text-dim)' }}>INVOICE CARGO VALUE</div>
+                  <strong style={{ fontSize: '13px', color: '#059669' }}>{routesData[selectedRoute].value}</strong>
+                </div>
+              </div>
+            </div>
+
+            <Link to="/details" style={{ fontSize: '12px', color: '#059669', fontWeight: 600, textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '4px' }}>
+              Read full dispatch pass & RTO compliance specifications <ArrowRight size={12} />
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* ========================================================= */}
+      {/* COMPREHENSIVE SOLUTIONS GRID */}
+      {/* ========================================================= */}
+      <section id="solutions-grid" style={{
+        padding: '64px 24px',
+        background: '#FFFFFF',
+        borderTop: '1px solid var(--border-medium)',
+        borderBottom: '1px solid var(--border-medium)'
+      }}>
+        <div style={{ maxWidth: '1280px', margin: '0 auto' }}>
+          <div style={{ textAlign: 'center', marginBottom: '40px' }}>
+            <span className="badge badge-cyan" style={{ marginBottom: '8px' }}>Modular Operations Suite</span>
+            <h2 style={{ fontSize: '2rem', fontWeight: 800, color: '#0F172A', letterSpacing: '-0.02em' }}>
+              Engineered Specifically for FMCG Distribution Velocity
+            </h2>
+            <p style={{ fontSize: '14px', color: 'var(--text-muted)', maxWidth: '680px', margin: '6px auto 0' }}>
+              Explore each module below. Click any card to read in-depth technical documentation in the Portal Details page.
+            </p>
+          </div>
+
           <div style={{
             display: 'grid',
             gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
-            gap: '24px',
-            alignItems: 'stretch'
-          }}>
-            {/* The Old Way */}
-            <div style={{
-              padding: '28px',
-              borderRadius: 'var(--radius-lg)',
-              background: '#FFF5F5',
-              border: '1px solid #FED7D7',
-              display: 'flex',
-              flexDirection: 'column'
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
-                <div style={{ width: '28px', height: '28px', borderRadius: '50%', background: '#FEB2B2', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <AlertTriangle size={15} color="#9B2C2C" />
-                </div>
-                <h3 style={{ fontSize: '16px', fontWeight: 700, color: '#9B2C2C', margin: 0 }}>
-                  Traditional Godown Stock Check
-                </h3>
-              </div>
-              <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 20px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                <li style={{ fontSize: '13px', color: '#742A2A', display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
-                  <span style={{ color: '#E53E3E', fontWeight: 700 }}>✕</span>
-                  <span><strong>Exposed Quantities:</strong> Godown staff see exactly how many cartons are in system stock (e.g. 150 CBB, 12 PCS).</span>
-                </li>
-                <li style={{ fontSize: '13px', color: '#742A2A', display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
-                  <span style={{ color: '#E53E3E', fontWeight: 700 }}>✕</span>
-                  <span><strong>Lazy Copy-Pasting:</strong> Instead of physically climbing stacks and counting, staff write down the identical number.</span>
-                </li>
-                <li style={{ fontSize: '13px', color: '#742A2A', display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
-                  <span style={{ color: '#E53E3E', fontWeight: 700 }}>✕</span>
-                  <span><strong>Undetected Pilferage:</strong> Broken packets, water damage, and theft remain hidden until audit discrepancies pile up to lakhs of rupees.</span>
-                </li>
-              </ul>
-              <div style={{ marginTop: 'auto', padding: '10px 14px', background: '#FFFFFF', borderRadius: 'var(--radius-md)', border: '1px solid #FEB2B2', fontSize: '12px', color: '#C53030', fontWeight: 600 }}>
-                High Financial Risk · Distorted Inventory Valuation
-              </div>
-            </div>
-
-            {/* Our Enterprise Blind Audit */}
-            <div style={{
-              padding: '28px',
-              borderRadius: 'var(--radius-lg)',
-              background: '#F0FDF4',
-              border: '1px solid #BBF7D0',
-              display: 'flex',
-              flexDirection: 'column'
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
-                <div style={{ width: '28px', height: '28px', borderRadius: '50%', background: '#86EFAC', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <ShieldCheck size={16} color="#166534" />
-                </div>
-                <h3 style={{ fontSize: '16px', fontWeight: 700, color: '#166534', margin: 0 }}>
-                  FMCG Suite Masked Blind Audit
-                </h3>
-              </div>
-              <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 20px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                <li style={{ fontSize: '13px', color: '#14532D', display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
-                  <Check size={16} color="#15803D" style={{ flexShrink: 0, marginTop: '2px' }} />
-                  <span><strong>100% Masked Values:</strong> System CBB & PCS render as <code>•••••• MASKED ••••••</code> on warehouse devices.</span>
-                </li>
-                <li style={{ fontSize: '13px', color: '#14532D', display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
-                  <Check size={16} color="#15803D" style={{ flexShrink: 0, marginTop: '2px' }} />
-                  <span><strong>Mandatory Physical Tally:</strong> Warehouse staff must physically inspect each stack and record actual cartons and loose pieces.</span>
-                </li>
-                <li style={{ fontSize: '13px', color: '#14532D', display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
-                  <Check size={16} color="#15803D" style={{ flexShrink: 0, marginTop: '2px' }} />
-                  <span><strong>Instant Variance Exposure:</strong> Operations Admin immediately sees discrepancy flags and exact rupee impact upon submission.</span>
-                </li>
-              </ul>
-              <div style={{ marginTop: 'auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <div style={{ fontSize: '12px', color: '#15803D', fontWeight: 700 }}>
-                  Zero Guesswork · Tamper Proof
-                </div>
-                <button
-                  onClick={() => handleQuickLogin('checker')}
-                  className="btn btn-emerald btn-sm"
-                >
-                  <span>Test Auditor Login</span>
-                  <ArrowRight size={13} />
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ========================================================= */}
-      {/* INTERACTIVE MODULES & LIVE PREVIEW */}
-      {/* ========================================================= */}
-      <section id="features" style={{ padding: '64px 24px', maxWidth: '1240px', margin: '0 auto', width: '100%' }}>
-        <div style={{ textAlign: 'center', marginBottom: '36px' }}>
-          <span className="badge badge-cyan" style={{ marginBottom: '8px' }}>Enterprise Capabilities</span>
-          <h2 style={{ fontSize: '1.9rem', fontWeight: 800, color: 'var(--text-main)', letterSpacing: '-0.02em' }}>
-            Comprehensive Modules Built for FMCG Velocity
-          </h2>
-          <p style={{ fontSize: '14px', color: 'var(--text-muted)', maxWidth: '680px', margin: '6px auto 0' }}>
-            Every tool required to run an authorized distributor or super-stockist with hundreds of SKUs and dozens of vehicles.
-          </p>
-        </div>
-
-        {/* Tab Switcher */}
-        <div style={{
-          display: 'flex',
-          justifyContent: 'center',
-          gap: '8px',
-          marginBottom: '28px',
-          flexWrap: 'wrap'
-        }}>
-          {[
-            { id: 'blind-audit', label: '🔒 Blind Stock Auditor Portal', icon: Lock },
-            { id: 'admin-dashboard', label: '🏢 Admin Stock Reconciliation', icon: BarChart3 },
-            { id: 'fleet', label: '🚚 Fleet & Route Logistics', icon: Truck },
-            { id: 'payroll', label: '💼 Staff & Driver Payroll', icon: Users },
-            { id: 'dispatch', label: '📋 Van Loading Passes', icon: FileText }
-          ].map((tab) => {
-            const Icon = tab.icon;
-            const active = activePreviewTab === tab.id;
-            return (
-              <button
-                key={tab.id}
-                onClick={() => setActivePreviewTab(tab.id)}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '7px',
-                  padding: '8px 16px',
-                  borderRadius: 'var(--radius-md)',
-                  border: `1px solid ${active ? 'var(--primary)' : 'var(--border-medium)'}`,
-                  background: active ? 'var(--primary)' : '#FFFFFF',
-                  color: active ? '#FFFFFF' : 'var(--text-main)',
-                  fontWeight: 600,
-                  fontSize: '13px',
-                  cursor: 'pointer',
-                  transition: 'all 0.15s ease'
-                }}
-              >
-                <Icon size={14} />
-                <span>{tab.label}</span>
-              </button>
-            );
-          })}
-        </div>
-
-        {/* Live Interactive Preview Card */}
-        <div style={{
-          background: 'var(--bg-surface)',
-          borderRadius: 'var(--radius-lg)',
-          border: '1px solid var(--border-strong)',
-          boxShadow: 'var(--shadow-md)',
-          overflow: 'hidden'
-        }}>
-          {/* Mock Browser Header */}
-          <div style={{
-            padding: '10px 16px',
-            background: 'var(--bg-surface-subtle)',
-            borderBottom: '1px solid var(--border-medium)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            fontSize: '12px'
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <div style={{ display: 'flex', gap: '5px' }}>
-                <span style={{ width: '9px', height: '9px', borderRadius: '50%', background: '#EF4444', display: 'inline-block' }}></span>
-                <span style={{ width: '9px', height: '9px', borderRadius: '50%', background: '#F59E0B', display: 'inline-block' }}></span>
-                <span style={{ width: '9px', height: '9px', borderRadius: '50%', background: '#10B981', display: 'inline-block' }}></span>
-              </div>
-              <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--text-dim)', fontSize: '11px', marginLeft: '6px' }}>
-                {activePreviewTab === 'blind-audit' ? 'portal.fmcg.internal/#/stock-audit (Role: Godown Stock Auditor)' : 'portal.fmcg.internal/#/operations (Role: Operations MD)'}
-              </span>
-            </div>
-            <span className="badge badge-neutral" style={{ fontSize: '10px' }}>
-              Live System Preview
-            </span>
-          </div>
-
-          {/* Preview Tab Content */}
-          <div style={{ padding: '24px' }}>
-            {activePreviewTab === 'blind-audit' && (
-              <div>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px', flexWrap: 'wrap', gap: '12px' }}>
-                  <div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <h4 style={{ fontSize: '16px', margin: 0 }}>Warehouse Physical Count · Blind Audit Mode</h4>
-                      <span className="badge badge-amber">🔒 Quantities Masked</span>
-                    </div>
-                    <p style={{ fontSize: '12px', color: 'var(--text-dim)', margin: '4px 0 0' }}>
-                      Active Master File: StockMRP_ITC_Foods_Active.xlsx · 8 Master Items Loaded
-                    </p>
-                  </div>
-                  <button
-                    onClick={() => handleQuickLogin('checker')}
-                    className="btn btn-emerald btn-sm"
-                  >
-                    <span>Launch Audit Screen</span>
-                    <ArrowRight size={13} />
-                  </button>
-                </div>
-
-                {/* Masked Audit Table Sample */}
-                <div className="table-container" style={{ margin: 0 }}>
-                  <table className="data-table">
-                    <thead>
-                      <tr>
-                        <th>Brand / SKU</th>
-                        <th>Product Description</th>
-                        <th>Factor (Pcs/Ctn)</th>
-                        <th style={{ background: '#FEF3C7', color: '#92400E' }}>🔒 System Stock (CBB / PCS)</th>
-                        <th style={{ background: '#ECFDF5', color: '#065F46' }}>Physical Count (CBB)</th>
-                        <th style={{ background: '#ECFDF5', color: '#065F46' }}>Physical Count (PCS)</th>
-                        <th>Status</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr>
-                        <td><span className="badge badge-neutral">ITC-001</span></td>
-                        <td><strong>Aashirvaad Superior MP Atta 10kg</strong></td>
-                        <td>4 pcs / ctn</td>
-                        <td style={{ background: '#FFFBEB', color: '#B45309', fontFamily: 'var(--font-mono)', fontWeight: 700 }}>
-                          •••••• MASKED ••••••
-                        </td>
-                        <td>
-                          <span style={{ display: 'inline-block', padding: '4px 8px', background: '#F1F5F9', borderRadius: '4px', fontWeight: 700 }}>120 CBB</span>
-                        </td>
-                        <td>
-                          <span style={{ display: 'inline-block', padding: '4px 8px', background: '#F1F5F9', borderRadius: '4px', fontWeight: 700 }}>2 PCS</span>
-                        </td>
-                        <td><span className="badge badge-emerald">Counted ✓</span></td>
-                      </tr>
-                      <tr>
-                        <td><span className="badge badge-neutral">ITC-002</span></td>
-                        <td><strong>Sunfeast Dark Fantasy Choco Fills 300g</strong></td>
-                        <td>24 pcs / ctn</td>
-                        <td style={{ background: '#FFFBEB', color: '#B45309', fontFamily: 'var(--font-mono)', fontWeight: 700 }}>
-                          •••••• MASKED ••••••
-                        </td>
-                        <td>
-                          <span style={{ display: 'inline-block', padding: '4px 8px', background: '#F1F5F9', borderRadius: '4px', fontWeight: 700 }}>85 CBB</span>
-                        </td>
-                        <td>
-                          <span style={{ display: 'inline-block', padding: '4px 8px', background: '#F1F5F9', borderRadius: '4px', fontWeight: 700 }}>0 PCS</span>
-                        </td>
-                        <td><span className="badge badge-emerald">Counted ✓</span></td>
-                      </tr>
-                      <tr>
-                        <td><span className="badge badge-neutral">ITC-003</span></td>
-                        <td><strong>Bingo! Mad Angles Achaari Masti 66g</strong></td>
-                        <td>48 pcs / ctn</td>
-                        <td style={{ background: '#FFFBEB', color: '#B45309', fontFamily: 'var(--font-mono)', fontWeight: 700 }}>
-                          •••••• MASKED ••••••
-                        </td>
-                        <td>
-                          <input type="number" placeholder="Enter CBB" disabled value="42" style={{ width: '80px', padding: '3px 6px', border: '1px solid #CBD5E1', borderRadius: '4px' }} />
-                        </td>
-                        <td>
-                          <input type="number" placeholder="Enter PCS" disabled value="10" style={{ width: '80px', padding: '3px 6px', border: '1px solid #CBD5E1', borderRadius: '4px' }} />
-                        </td>
-                        <td><span className="badge badge-amber">In Progress</span></td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            )}
-
-            {activePreviewTab === 'admin-dashboard' && (
-              <div>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
-                  <div>
-                    <h4 style={{ fontSize: '16px', margin: 0 }}>Executive Stock Reconciliation & Variance Impact</h4>
-                    <p style={{ fontSize: '12px', color: 'var(--text-dim)', margin: '4px 0 0' }}>
-                      Admin View: Both System Book Stock & Auditor Physical Counts Unmasked with Discrepancy Valuation
-                    </p>
-                  </div>
-                  <button onClick={() => handleQuickLogin('admin')} className="btn btn-primary btn-sm">
-                    Open Stock Manager
-                  </button>
-                </div>
-                <div className="table-container" style={{ margin: 0 }}>
-                  <table className="data-table">
-                    <thead>
-                      <tr>
-                        <th>Product</th>
-                        <th>Book Stock (CBB)</th>
-                        <th>Auditor Physical (CBB)</th>
-                        <th>CBB Variance</th>
-                        <th>PCS Variance</th>
-                        <th>Financial Impact (₹)</th>
-                        <th>Audit Result</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr>
-                        <td><strong>Aashirvaad Superior MP Atta 10kg</strong></td>
-                        <td>120 CBB</td>
-                        <td>120 CBB</td>
-                        <td><span className="badge badge-emerald">0 CBB</span></td>
-                        <td><span className="badge badge-emerald">0 PCS</span></td>
-                        <td style={{ color: '#059669', fontWeight: 700 }}>₹ 0.00</td>
-                        <td><span className="badge badge-emerald">MATCHED</span></td>
-                      </tr>
-                      <tr>
-                        <td><strong>Sunfeast Dark Fantasy Choco Fills 300g</strong></td>
-                        <td>90 CBB</td>
-                        <td>85 CBB</td>
-                        <td><span className="badge badge-rose">-5 CBB</span></td>
-                        <td><span className="badge badge-rose">-3 PCS</span></td>
-                        <td style={{ color: '#DC2626', fontWeight: 700 }}>-₹ 12,450.00</td>
-                        <td><span className="badge badge-rose">SHORTAGE</span></td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            )}
-
-            {activePreviewTab === 'fleet' && (
-              <div>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
-                  <div>
-                    <h4 style={{ fontSize: '16px', margin: 0 }}>Fleet Logistics & Vehicle Trip Monitoring</h4>
-                    <p style={{ fontSize: '12px', color: 'var(--text-dim)', margin: '4px 0 0' }}>
-                      Active Vehicles: 6 Trucks · Live Fuel Efficiency · Route Profitability
-                    </p>
-                  </div>
-                  <button onClick={() => handleQuickLogin('admin')} className="btn btn-primary btn-sm">
-                    Open Fleet Module
-                  </button>
-                </div>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '14px' }}>
-                  <div style={{ padding: '14px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-medium)', background: '#F8FAFC' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
-                      <strong>TN-45-AK-8821</strong>
-                      <span className="badge badge-emerald">On Route</span>
-                    </div>
-                    <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Ashok Leyland Dost · Salem Central Route</div>
-                    <div style={{ marginTop: '10px', fontSize: '11.5px', display: 'flex', justifyContent: 'space-between' }}>
-                      <span>Capacity: 85% (170 CBB)</span>
-                      <span>Driver: K. Ramesh</span>
-                    </div>
-                  </div>
-                  <div style={{ padding: '14px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-medium)', background: '#F8FAFC' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
-                      <strong>TN-28-BZ-4102</strong>
-                      <span className="badge badge-cyan">Loading</span>
-                    </div>
-                    <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Tata Ace Gold · Erode Super Express</div>
-                    <div style={{ marginTop: '10px', fontSize: '11.5px', display: 'flex', justifyContent: 'space-between' }}>
-                      <span>Capacity: 60% (75 CBB)</span>
-                      <span>Driver: S. Murugesan</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {activePreviewTab === 'payroll' && (
-              <div>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
-                  <div>
-                    <h4 style={{ fontSize: '16px', margin: 0 }}>Automated FMCG Staff & Driver Payroll</h4>
-                    <p style={{ fontSize: '12px', color: 'var(--text-dim)', margin: '4px 0 0' }}>
-                      Configurable standard working days (e.g. 26 days) · Distance incentives · PDF payslip export
-                    </p>
-                  </div>
-                  <button onClick={() => handleQuickLogin('admin')} className="btn btn-primary btn-sm">
-                    Open Payroll Module
-                  </button>
-                </div>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '12px' }}>
-                  <div style={{ padding: '12px', background: '#F8FAFC', borderRadius: '6px', border: '1px solid var(--border-medium)' }}>
-                    <div style={{ fontSize: '11px', color: 'var(--text-dim)' }}>MONTHLY PAYROLL EXPENDITURE</div>
-                    <div style={{ fontSize: '20px', fontWeight: 800, color: 'var(--text-main)', marginTop: '4px' }}>₹ 2,48,500.00</div>
-                    <span style={{ fontSize: '11px', color: '#059669' }}>12 Employees Processed</span>
-                  </div>
-                  <div style={{ padding: '12px', background: '#F8FAFC', borderRadius: '6px', border: '1px solid var(--border-medium)' }}>
-                    <div style={{ fontSize: '11px', color: 'var(--text-dim)' }}>DRIVER OT & TRIP INCENTIVES</div>
-                    <div style={{ fontSize: '20px', fontWeight: 800, color: 'var(--primary)', marginTop: '4px' }}>₹ 34,200.00</div>
-                    <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Based on logged km</span>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {activePreviewTab === 'dispatch' && (
-              <div>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
-                  <div>
-                    <h4 style={{ fontSize: '16px', margin: 0 }}>Van Loading Passes & Security Verification</h4>
-                    <p style={{ fontSize: '12px', color: 'var(--text-dim)', margin: '4px 0 0' }}>
-                      Gate security verification · Carton tallying · Customer invoice assignment
-                    </p>
-                  </div>
-                  <button onClick={() => handleQuickLogin('admin')} className="btn btn-primary btn-sm">
-                    Open Dispatch Module
-                  </button>
-                </div>
-                <div style={{ padding: '16px', background: '#F8FAFC', borderRadius: '8px', border: '1px solid var(--border-medium)' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                    <strong>PASS #VLP-2026-0891 · TN-45-AK-8821</strong>
-                    <span className="badge badge-emerald">Gate Cleared</span>
-                  </div>
-                  <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
-                    Route: Namakkal City Retailers · Total Cartons: 215 CBB · Invoice Value: ₹ 4,82,000.00
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-      </section>
-
-      {/* ========================================================= */}
-      {/* 4-STEP WORKFLOW SECTION */}
-      {/* ========================================================= */}
-      <section id="workflow" style={{
-        padding: '64px 24px',
-        background: '#FFFFFF',
-        borderTop: '1px solid var(--border-medium)',
-        borderBottom: '1px solid var(--border-medium)'
-      }}>
-        <div style={{ maxWidth: '1240px', margin: '0 auto' }}>
-          <div style={{ textAlign: 'center', marginBottom: '40px' }}>
-            <span className="badge badge-neutral" style={{ marginBottom: '8px' }}>Operational Blueprint</span>
-            <h2 style={{ fontSize: '1.9rem', fontWeight: 800, color: 'var(--text-main)', letterSpacing: '-0.02em' }}>
-              How FMCG Suite Synchronizes Your Entire Agency
-            </h2>
-            <p style={{ fontSize: '14px', color: 'var(--text-muted)', maxWidth: '640px', margin: '6px auto 0' }}>
-              From initial ERP Excel upload to gate security dispatch, every step is automated and verified.
-            </p>
-          </div>
-
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
-            gap: '20px'
+            gap: '24px'
           }}>
             {[
               {
-                step: '01',
-                title: 'Excel File Upload',
-                role: 'Operations MD',
-                desc: 'Upload StockMRP.xlsx directly from company billing system with automated SKU, brand, and conversion factor parsing.'
+                icon: Lock,
+                color: '#D97706',
+                bg: '#FEF3C7',
+                title: 'Masked Blind Stock Audit',
+                badge: 'Zero Pilferage',
+                desc: 'Seals system stock numbers from godown checkers. Forces physical pallet counts, validating carton-to-piece conversions and exposing exact ₹ discrepancies.',
+                link: '/details'
               },
               {
-                step: '02',
-                title: 'Blind Stock Masking',
-                role: 'Security Engine',
-                desc: 'System automatically seals book numbers. Godown floor tablets only receive SKU details, masking target quantities.'
+                icon: Truck,
+                color: '#2563EB',
+                bg: '#EFF6FF',
+                title: 'Fleet & FC Compliance Vault',
+                badge: 'RTO Certified',
+                desc: 'Tracks commercial vehicle RTO Fitness Certificates (FC), commercial insurance policies, driver license validity, and trip fuel economics.',
+                link: '/details'
               },
               {
-                step: '03',
-                title: 'Physical Floor Count',
-                role: 'Godown Auditor',
-                desc: 'Checker walks aisles, records cartons & loose pieces, logs transit/water damages, and saves verified physical counts.'
+                icon: Package,
+                color: '#059669',
+                bg: '#ECFDF5',
+                title: 'Stock & Excel MRP Engine',
+                badge: 'Instant Parsing',
+                desc: 'Parses standard company StockMRP.xlsx sheets in seconds. Handles dual-unit inventory counting (Cartons CBB & Pieces PCS) with automatic factor math.',
+                link: '/details'
               },
               {
-                step: '04',
-                title: 'Instant Reconciliation',
-                role: 'Management Hub',
-                desc: 'Discrepancy valuation in ₹ is immediately unlocked. Audit variance report is generated for supplier claim settlement.'
+                icon: Users,
+                color: '#7C3AED',
+                bg: '#F5F3FF',
+                title: 'Dynamic FMCG Staff Payroll',
+                badge: '26-Day Formula',
+                desc: 'Automates monthly driver and godown staff payroll. Computes kilometer distance incentives, advance deductions, and one-click PDF payslips.',
+                link: '/details'
+              },
+              {
+                icon: FileText,
+                color: '#0284C7',
+                bg: '#F0F9FF',
+                title: 'Van Dispatch & Gate Security',
+                badge: 'QR Passes',
+                desc: 'Generates gate-verified Van Loading Passes linking delivery route invoices, carton tally sheets, and security officer signatures.',
+                link: '/details'
+              },
+              {
+                icon: Building2,
+                color: '#0F172A',
+                bg: '#F1F5F9',
+                title: 'Multi-Tenant Agency Isolation',
+                badge: 'Supabase Cloud',
+                desc: 'Isolates multiple legal entities (e.g. Thulir Agencies vs Sri Murugan Agencies) with separate database schemas, live sync, and offline resilience.',
+                link: '/details'
               }
-            ].map((st) => (
-              <div
-                key={st.step}
-                style={{
-                  padding: '24px',
-                  background: 'var(--bg-canvas)',
-                  borderRadius: 'var(--radius-lg)',
-                  border: '1px solid var(--border-medium)',
-                  position: 'relative'
-                }}
-              >
-                <div style={{
-                  fontSize: '32px',
-                  fontWeight: 900,
-                  fontFamily: 'var(--font-heading)',
-                  color: '#CBD5E1',
-                  lineHeight: 1,
-                  marginBottom: '12px'
-                }}>
-                  {st.step}
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px' }}>
-                  <h4 style={{ fontSize: '15px', fontWeight: 700, margin: 0 }}>{st.title}</h4>
-                </div>
-                <span className="badge badge-cyan" style={{ fontSize: '10px', marginBottom: '10px' }}>
-                  {st.role}
-                </span>
-                <p style={{ fontSize: '12.5px', color: 'var(--text-muted)', lineHeight: 1.5, margin: 0 }}>
-                  {st.desc}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ========================================================= */}
-      {/* MULTI-TENANT ARCHITECTURE & SUPABASE CLOUD */}
-      {/* ========================================================= */}
-      <section id="architecture" style={{ padding: '64px 24px', maxWidth: '1240px', margin: '0 auto', width: '100%' }}>
-        <div style={{
-          padding: '40px',
-          background: 'var(--bg-surface)',
-          borderRadius: 'var(--radius-lg)',
-          border: '1px solid var(--border-strong)',
-          boxShadow: 'var(--shadow-sm)',
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
-          gap: '32px',
-          alignItems: 'center'
-        }}>
-          <div>
-            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '3px 8px', borderRadius: '4px', background: '#EFF6FF', color: '#1D4ED8', fontSize: '11px', fontWeight: 700, marginBottom: '12px' }}>
-              <Database size={13} /> Enterprise Data Architecture
-            </div>
-            <h3 style={{ fontSize: '1.7rem', fontWeight: 800, color: 'var(--text-main)', letterSpacing: '-0.02em', lineHeight: 1.25 }}>
-              Isolated Multi-Agency Storage with Supabase Cloud
-            </h3>
-            <p style={{ fontSize: '13.5px', color: 'var(--text-muted)', lineHeight: 1.6, margin: '12px 0 20px' }}>
-              Built to manage multiple independent distribution businesses (e.g. Thulir Agencies, Sri Murugan Agencies) on a single platform without data leaks or cross-tenant contamination.
-            </p>
-            <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              <li style={{ fontSize: '13px', color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <CheckCircle2 size={16} color="#059669" />
-                <span><strong>Role-Based Access Control:</strong> Strict separation of Admin vs Auditor privileges.</span>
-              </li>
-              <li style={{ fontSize: '13px', color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <CheckCircle2 size={16} color="#059669" />
-                <span><strong>PostgreSQL Table Indexing:</strong> Ultra-fast lookups on agency ID, SKU codes, and trips.</span>
-              </li>
-              <li style={{ fontSize: '13px', color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <CheckCircle2 size={16} color="#059669" />
-                <span><strong>Offline-First Resilience:</strong> Never lose warehouse entries when Wi-Fi fluctuates in the godown.</span>
-              </li>
-            </ul>
-          </div>
-
-          <div style={{
-            padding: '24px',
-            background: 'var(--bg-canvas)',
-            borderRadius: 'var(--radius-md)',
-            border: '1px solid var(--border-medium)',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '14px'
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <span style={{ fontSize: '12px', fontWeight: 700, textTransform: 'uppercase', color: 'var(--text-dim)' }}>
-                Registered Agencies
-              </span>
-              <span className="badge badge-emerald">Online</span>
-            </div>
-
-            {allAgencies.map((agency) => (
-              <div
-                key={agency.id}
-                style={{
-                  padding: '12px',
-                  background: '#FFFFFF',
-                  borderRadius: 'var(--radius-md)',
-                  border: `1px solid ${agency.id === activeAgency?.id ? '#2563EB' : 'var(--border-subtle)'}`,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between'
-                }}
-              >
-                <div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <span style={{ fontSize: '14px' }}>{agency.logoEmoji || '🏢'}</span>
-                    <strong style={{ fontSize: '13px' }}>{agency.name}</strong>
-                    {agency.id === activeAgency?.id && (
-                      <span className="badge badge-cyan" style={{ fontSize: '9px' }}>Current</span>
-                    )}
-                  </div>
-                  <div style={{ fontSize: '11px', color: 'var(--text-dim)', marginTop: '2px' }}>
-                    {agency.hubLocation} · {agency.gstin}
-                  </div>
-                </div>
-                <button
-                  onClick={() => {
-                    switchAgency(agency.id);
-                    navigate('/login');
+            ].map((card, idx) => {
+              const Icon = card.icon;
+              return (
+                <div
+                  key={idx}
+                  style={{
+                    padding: '28px',
+                    borderRadius: 'var(--radius-lg)',
+                    background: 'var(--bg-canvas)',
+                    border: '1px solid var(--border-medium)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'space-between',
+                    transition: 'transform 0.15s ease, box-shadow 0.15s ease'
                   }}
-                  className="btn btn-secondary btn-sm"
-                  style={{ fontSize: '11px', padding: '4px 8px' }}
                 >
-                  Select Agency
-                </button>
-              </div>
-            ))}
+                  <div>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
+                      <div style={{
+                        width: '42px',
+                        height: '42px',
+                        borderRadius: '10px',
+                        background: card.bg,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                      }}>
+                        <Icon size={22} color={card.color} />
+                      </div>
+                      <span className="badge badge-neutral" style={{ fontSize: '10px' }}>{card.badge}</span>
+                    </div>
+
+                    <h3 style={{ fontSize: '17px', fontWeight: 800, color: 'var(--text-main)', margin: '0 0 8px 0' }}>
+                      {card.title}
+                    </h3>
+                    <p style={{ fontSize: '13px', color: 'var(--text-muted)', lineHeight: 1.6, margin: 0 }}>
+                      {card.desc}
+                    </p>
+                  </div>
+
+                  <div style={{ marginTop: '24px', paddingTop: '16px', borderTop: '1px solid var(--border-subtle)' }}>
+                    <Link
+                      to={card.link}
+                      style={{
+                        fontSize: '12.5px',
+                        fontWeight: 700,
+                        color: '#2563EB',
+                        textDecoration: 'none',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '6px'
+                      }}
+                    >
+                      <span>Explore Technical Specifications</span>
+                      <ArrowRight size={13} />
+                    </Link>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
       </section>
 
       {/* ========================================================= */}
-      {/* CALL TO ACTION BANNER */}
+      {/* BRAND PORTFOLIOS SUPPORTED */}
+      {/* ========================================================= */}
+      <section style={{ padding: '48px 24px', maxWidth: '1280px', margin: '0 auto', width: '100%', textAlign: 'center' }}>
+        <div style={{ fontSize: '11.5px', fontWeight: 700, textTransform: 'uppercase', color: 'var(--text-dim)', letterSpacing: '0.06em', marginBottom: '16px' }}>
+          COMPATIBLE WITH STANDARD BILLING WORKBOOKS OF MAJOR FMCG PRINCIPALS
+        </div>
+        <div style={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          gap: '24px',
+          flexWrap: 'wrap'
+        }}>
+          {['ITC Foods & Personal Care', 'Britannia Industries', 'Nestle India', 'Tata Consumer Products', 'Hindustan Unilever', 'Parle Agro'].map((brand) => (
+            <div
+              key={brand}
+              style={{
+                padding: '8px 18px',
+                borderRadius: '999px',
+                background: '#FFFFFF',
+                border: '1px solid var(--border-medium)',
+                boxShadow: 'var(--shadow-sm)',
+                fontSize: '12.5px',
+                fontWeight: 700,
+                color: 'var(--text-main)'
+              }}
+            >
+              {brand}
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* ========================================================= */}
+      {/* EXECUTIVE CALL TO ACTION BANNER */}
       {/* ========================================================= */}
       <section style={{
-        padding: '54px 24px',
+        padding: '60px 24px',
         background: 'linear-gradient(135deg, #1E3A8A 0%, #1D4ED8 100%)',
         color: '#FFFFFF',
-        textAlign: 'center'
+        textAlign: 'center',
+        position: 'relative'
       }}>
-        <div style={{ maxWidth: '800px', margin: '0 auto' }}>
-          <h2 style={{ fontSize: '2.1rem', fontWeight: 800, color: '#FFFFFF', letterSpacing: '-0.02em', marginBottom: '14px' }}>
-            Ready to Supercharge Your FMCG Operations?
+        <div style={{ maxWidth: '820px', margin: '0 auto' }}>
+          <h2 style={{ fontSize: '2.2rem', fontWeight: 900, color: '#FFFFFF', letterSpacing: '-0.02em', marginBottom: '14px' }}>
+            Elevate Your FMCG Distribution Infrastructure Today
           </h2>
-          <p style={{ fontSize: '15px', color: '#BFDBFE', lineHeight: 1.6, marginBottom: '32px' }}>
-            Choose your login portal below to begin managing inventory, executing masked godown audits, or reviewing fleet dispatches.
+          <p style={{ fontSize: '15px', color: '#BFDBFE', lineHeight: 1.6, marginBottom: '36px' }}>
+            Choose your login portal below to begin managing inventory, running masked godown audits, or reviewing fleet dispatches.
           </p>
 
           <div style={{ display: 'flex', justifyContent: 'center', gap: '14px', flexWrap: 'wrap' }}>
             <button
               onClick={() => handleQuickLogin('admin')}
               style={{
-                padding: '12px 24px',
-                fontSize: '14px',
+                padding: '13px 26px',
+                fontSize: '14.5px',
                 fontWeight: 700,
                 background: '#FFFFFF',
                 color: '#1D4ED8',
@@ -1180,7 +1243,7 @@ export default function LandingPage() {
                 display: 'flex',
                 alignItems: 'center',
                 gap: '8px',
-                boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
+                boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
               }}
             >
               <span>🏢 Operations Admin Login</span>
@@ -1190,8 +1253,8 @@ export default function LandingPage() {
             <button
               onClick={() => handleQuickLogin('checker')}
               style={{
-                padding: '12px 24px',
-                fontSize: '14px',
+                padding: '13px 26px',
+                fontSize: '14.5px',
                 fontWeight: 700,
                 background: 'rgba(255, 255, 255, 0.15)',
                 color: '#FFFFFF',
@@ -1206,6 +1269,26 @@ export default function LandingPage() {
               <Lock size={15} />
               <span>📦 Godown Stock Auditor Login</span>
             </button>
+
+            <Link
+              to="/details"
+              style={{
+                padding: '13px 24px',
+                fontSize: '14.5px',
+                fontWeight: 700,
+                background: 'transparent',
+                color: '#FFFFFF',
+                border: '1px solid rgba(255, 255, 255, 0.3)',
+                borderRadius: 'var(--radius-md)',
+                textDecoration: 'none',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px'
+              }}
+            >
+              <BookOpen size={15} />
+              <span>Read Full Specs</span>
+            </Link>
           </div>
         </div>
       </section>
@@ -1214,14 +1297,14 @@ export default function LandingPage() {
       {/* FOOTER */}
       {/* ========================================================= */}
       <footer style={{
-        padding: '32px 24px',
+        padding: '36px 24px',
         background: '#FFFFFF',
         borderTop: '1px solid var(--border-medium)',
-        fontSize: '12px',
+        fontSize: '12.5px',
         color: 'var(--text-dim)'
       }}>
         <div style={{
-          maxWidth: '1240px',
+          maxWidth: '1280px',
           margin: '0 auto',
           display: 'flex',
           justifyContent: 'space-between',
@@ -1230,20 +1313,23 @@ export default function LandingPage() {
           gap: '16px'
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <Truck size={16} color="#2563EB" />
-            <span style={{ fontWeight: 700, color: 'var(--text-main)' }}>FMCG Enterprise Portal</span>
-            <span>· Standard Multi-Tenant Edition 2026</span>
+            <Truck size={17} color="#2563EB" />
+            <span style={{ fontWeight: 800, color: 'var(--text-main)' }}>FMCG Enterprise Portal</span>
+            <span>· Multi-Tenant Operating System 2026</span>
           </div>
 
-          <div style={{ display: 'flex', gap: '20px' }}>
+          <div style={{ display: 'flex', gap: '20px', alignItems: 'center' }}>
+            <Link to="/landing" style={{ color: 'var(--primary)', fontWeight: 700, textDecoration: 'none' }}>
+              Home
+            </Link>
+            <Link to="/details" style={{ color: 'var(--text-muted)', textDecoration: 'none', fontWeight: 600 }}>
+              Portal Details & Specifications
+            </Link>
             <Link to="/login" style={{ color: 'var(--text-muted)', textDecoration: 'none' }}>
               Standard Login
             </Link>
             <span onClick={() => handleQuickLogin('checker')} style={{ color: 'var(--text-muted)', cursor: 'pointer' }}>
               Blind Godown Audit
-            </span>
-            <span onClick={() => handleQuickLogin('admin')} style={{ color: 'var(--text-muted)', cursor: 'pointer' }}>
-              Admin Operations
             </span>
           </div>
         </div>

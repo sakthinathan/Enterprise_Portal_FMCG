@@ -17,7 +17,9 @@ import {
   Database,
   Plus,
   EyeOff,
-  Sparkles
+  Sparkles,
+  Home,
+  BookOpen
 } from 'lucide-react';
 import { isSupabaseConfigured } from '../lib/supabaseClient';
 
@@ -75,15 +77,19 @@ export default function HeaderNav() {
   });
 
   const navItems = isAuditor ? [
-    { label: 'Godown Stock Audit', path: '/stock-audit', icon: <Package size={16} /> },
-    { label: 'Van Loading Passes', path: '/dispatch', icon: <MapPin size={16} /> }
+    { label: 'Home', path: '/landing', icon: <Home size={15} /> },
+    { label: 'Godown Stock Audit', path: '/stock-audit', icon: <EyeOff size={15} /> },
+    { label: 'Van Loading Passes', path: '/dispatch', icon: <MapPin size={15} /> },
+    { label: 'Portal Details', path: '/details', icon: <BookOpen size={15} /> }
   ] : [
-    { label: 'Operations Hub', path: '/', icon: <LayoutDashboard size={16} /> },
-    { label: 'Fleet & FC Vault', path: '/fleet', icon: <Truck size={16} />, badge: complianceAlerts.length > 0 ? complianceAlerts.length : null },
-    { label: 'Stock (CBB/PCS)', path: '/stock', icon: <Package size={16} /> },
-    { label: 'Blind Stock Audit', path: '/stock-audit', icon: <EyeOff size={16} /> },
-    { label: 'Staff Payroll', path: '/payroll', icon: <Users size={16} /> },
-    { label: 'Van Dispatch', path: '/dispatch', icon: <MapPin size={16} /> }
+    { label: 'Home', path: '/landing', icon: <Home size={15} /> },
+    { label: 'Operations Hub', path: '/', icon: <LayoutDashboard size={15} /> },
+    { label: 'Fleet & FC Vault', path: '/fleet', icon: <Truck size={15} />, badge: complianceAlerts.length > 0 ? complianceAlerts.length : null },
+    { label: 'Stock (CBB/PCS)', path: '/stock', icon: <Package size={15} /> },
+    { label: 'Blind Stock Audit', path: '/stock-audit', icon: <EyeOff size={15} /> },
+    { label: 'Staff Payroll', path: '/payroll', icon: <Users size={15} /> },
+    { label: 'Van Dispatch', path: '/dispatch', icon: <MapPin size={15} /> },
+    { label: 'Portal Details', path: '/details', icon: <BookOpen size={15} /> }
   ];
 
   return (
