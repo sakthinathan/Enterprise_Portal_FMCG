@@ -13,8 +13,11 @@ import {
   Bell,
   LogOut,
   ShieldAlert,
-  Building2
+  Building2,
+  Database,
+  Plus
 } from 'lucide-react';
+import { isSupabaseConfigured } from '../lib/supabaseClient';
 
 export default function HeaderNav() {
   const { activeAgency, allAgencies, switchAgency } = useTenant();
@@ -198,6 +201,25 @@ export default function HeaderNav() {
                   )}
                 </div>
               ))}
+              <div style={{ marginTop: '6px', paddingTop: '6px', borderTop: '1px solid var(--border-subtle)', textAlign: 'center' }}>
+                <Link
+                  to="/login"
+                  onClick={() => setAgencyDropdownOpen(false)}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '4px',
+                    fontSize: '11px',
+                    color: '#38BDF8',
+                    fontWeight: 700,
+                    textDecoration: 'none',
+                    padding: '4px 0'
+                  }}
+                >
+                  <Plus size={12} /> Register / Switch Agency
+                </Link>
+              </div>
             </div>
           )}
         </div>
@@ -339,6 +361,16 @@ export default function HeaderNav() {
             </div>
           )}
         </div>
+
+        {/* Cloud Connection Indicator */}
+        <span
+          className={`badge ${isSupabaseConfigured() ? 'badge-emerald' : 'badge-neutral'}`}
+          title={isSupabaseConfigured() ? 'Connected to Supabase Cloud PostgreSQL' : 'Local Multi-Tenant Storage Cache (configure .env for Supabase)'}
+          style={{ fontSize: '10.5px' }}
+        >
+          <Database size={11} />
+          {isSupabaseConfigured() ? 'Cloud DB' : 'Local DB'}
+        </span>
 
         <button
           onClick={() => { logout(); navigate('/login'); }}

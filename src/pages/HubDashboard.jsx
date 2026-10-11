@@ -158,7 +158,16 @@ export default function HubDashboard() {
                   </tr>
                 </thead>
                 <tbody>
-                  {vehicles.slice(0, 4).map(v => {
+                  {vehicles.length === 0 ? (
+                    <tr>
+                      <td colSpan={5} style={{ textAlign: 'center', padding: '28px 16px', color: 'var(--text-muted)', fontSize: '12.5px' }}>
+                        No commercial vehicles in fleet yet.{' '}
+                        <Link to="/fleet" style={{ color: 'var(--primary-text)', fontWeight: 700, textDecoration: 'none' }}>
+                          + Add your first delivery vehicle →
+                        </Link>
+                      </td>
+                    </tr>
+                  ) : vehicles.slice(0, 4).map(v => {
                     const fcDays = calculateDaysLeft(v.fc?.expiryDate);
                     const insDays = calculateDaysLeft(v.insurance?.expiryDate);
                     return (
@@ -230,7 +239,16 @@ export default function HubDashboard() {
                   </tr>
                 </thead>
                 <tbody>
-                  {stockItems.slice(0, 4).map(s => {
+                  {stockItems.length === 0 ? (
+                    <tr>
+                      <td colSpan={6} style={{ textAlign: 'center', padding: '28px 16px', color: 'var(--text-muted)', fontSize: '12.5px' }}>
+                        No warehouse inventory imported yet.{' '}
+                        <Link to="/stock" style={{ color: 'var(--primary-text)', fontWeight: 700, textDecoration: 'none' }}>
+                          Upload Stock MRP Excel or Add SKU →
+                        </Link>
+                      </td>
+                    </tr>
+                  ) : stockItems.slice(0, 4).map(s => {
                     const cbbText = formatCbbPcs(s.variance * s.conversion, s.conversion, true);
                     return (
                       <tr key={s.id}>
@@ -312,7 +330,14 @@ export default function HubDashboard() {
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              {dispatchSheets.map(dsp => (
+              {dispatchSheets.length === 0 ? (
+                <div style={{ padding: '24px 16px', textAlign: 'center', color: 'var(--text-muted)', fontSize: '12px' }}>
+                  No delivery manifests created for today.{' '}
+                  <Link to="/dispatch" style={{ color: 'var(--primary-text)', fontWeight: 700, textDecoration: 'none' }}>
+                    + Generate Gate Pass →
+                  </Link>
+                </div>
+              ) : dispatchSheets.map(dsp => (
                 <div key={dsp.id} style={{
                   padding: '12px',
                   borderRadius: 'var(--radius-md)',

@@ -152,7 +152,21 @@ export default function DispatchView() {
               </tr>
             </thead>
             <tbody>
-              {dispatchSheets.map(dsp => (
+              {dispatchSheets.length === 0 ? (
+                <tr>
+                  <td colSpan={9} style={{ textAlign: 'center', padding: '36px 20px', color: 'var(--text-muted)' }}>
+                    <div style={{ fontSize: '14px', fontWeight: 700, color: '#FFFFFF', marginBottom: '6px' }}>
+                      No Delivery Van Dispatches Recorded Today
+                    </div>
+                    <div style={{ fontSize: '12px', marginBottom: '14px' }}>
+                      Generate loading manifests for your delivery pilots to track loaded cartons and returnable plastic crates.
+                    </div>
+                    <button onClick={() => setModalOpen(true)} className="btn btn-primary btn-sm">
+                      <Plus size={14} /> Create First Van Dispatch
+                    </button>
+                  </td>
+                </tr>
+              ) : dispatchSheets.map(dsp => (
                 <tr key={dsp.id}>
                   <td>
                     <div style={{ fontWeight: 800, fontSize: '13.5px', fontFamily: 'var(--font-mono)', color: 'var(--primary-light)' }}>

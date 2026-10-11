@@ -6,12 +6,12 @@ const TenantContext = createContext();
 export function TenantProvider({ children }) {
   const [dataVersion, setDataVersion] = useState(0);
   const [activeAgency, setActiveAgencyState] = useState(() => fmcgDb.getActiveAgency());
-  const [allAgencies, setAllAgencies] = useState(() => fmcgDb.get().agencies);
+  const [allAgencies, setAllAgencies] = useState(() => fmcgDb.getAllAgencies());
 
   const refreshData = () => {
     setDataVersion(v => v + 1);
     setActiveAgencyState(fmcgDb.getActiveAgency());
-    setAllAgencies(fmcgDb.get().agencies);
+    setAllAgencies(fmcgDb.getAllAgencies());
   };
 
   const switchAgency = (agencyId) => {
@@ -20,21 +20,25 @@ export function TenantProvider({ children }) {
     setDataVersion(v => v + 1);
   };
 
-  useEffect(() => {
-    const handleStorage = (e) => {
-      if (e.key === 'fmcg_enterprise_suite_data_v1') {
-        refreshData();
-      }
-    };
-    window.addEventListener('storage', handleStorage);
-    return () => window.removeEventListener('storage', handleStorage);
-  }, []);
+  const registerAgency = (agencyData) => {
+    const created = fmcgDb.registerAgency(agencyData);
+    refreshData();
+    return created;
+  };
+
+  const updateActiveAgency = (updates) => {
+    const updated = fmcgDb.updateAgency(activeAgency.id, updates);
+    refreshData();
+    return updated;
+  };
 
   return (
     <TenantContext.Provider value={{
       activeAgency,
       allAgencies,
       switchAgency,
+      registerAgency,
+      updateActiveAgency,
       refreshData,
       dataVersion
     }}>

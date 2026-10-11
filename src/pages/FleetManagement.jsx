@@ -453,7 +453,21 @@ export default function FleetManagement() {
                 </tr>
               </thead>
               <tbody>
-                {filteredVehicles.map(v => {
+                {filteredVehicles.length === 0 ? (
+                  <tr>
+                    <td colSpan={7} style={{ textAlign: 'center', padding: '36px 20px', color: 'var(--text-muted)' }}>
+                      <div style={{ fontSize: '14px', fontWeight: 700, color: '#FFFFFF', marginBottom: '6px' }}>
+                        No Commercial Vehicles in Fleet Yet
+                      </div>
+                      <div style={{ fontSize: '12px', marginBottom: '14px' }}>
+                        Add your delivery vans, Tata Ace mini-trucks, and bolero pickups to monitor RTO Fitness Certificates (FC) and Insurance.
+                      </div>
+                      <button onClick={openAddVehicle} className="btn btn-primary btn-sm">
+                        <Plus size={14} /> Add First Fleet Vehicle
+                      </button>
+                    </td>
+                  </tr>
+                ) : filteredVehicles.map(v => {
                   const fcDays = calculateDaysLeft(v.fc?.expiryDate);
                   const insDays = calculateDaysLeft(v.insurance?.expiryDate);
 
@@ -626,7 +640,13 @@ export default function FleetManagement() {
                 </tr>
               </thead>
               <tbody>
-                {vehicles.map(v => {
+                {vehicles.length === 0 ? (
+                  <tr>
+                    <td colSpan={8} style={{ textAlign: 'center', padding: '32px 16px', color: 'var(--text-muted)' }}>
+                      No vehicles in compliance matrix. Add a vehicle to begin tracking RTO Fitness Certificates.
+                    </td>
+                  </tr>
+                ) : vehicles.map(v => {
                   const fcDays = calculateDaysLeft(v.fc?.expiryDate);
                   const insDays = calculateDaysLeft(v.insurance?.expiryDate);
                   const pucDays = calculateDaysLeft(v.puc?.expiryDate);

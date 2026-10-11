@@ -411,7 +411,21 @@ export default function PayrollView() {
                   </tr>
                 </thead>
                 <tbody>
-                  {employees.slice(0, 5).map(e => (
+                  {employees.length === 0 ? (
+                    <tr>
+                      <td colSpan={7} style={{ textAlign: 'center', padding: '36px 20px', color: 'var(--text-muted)' }}>
+                        <div style={{ fontSize: '14px', fontWeight: 700, color: '#FFFFFF', marginBottom: '6px' }}>
+                          No Staff or Drivers on Roster Yet
+                        </div>
+                        <div style={{ fontSize: '12px', marginBottom: '14px' }}>
+                          Register your delivery drivers, loaders, and salesmen to process daily wages and monthly salaries.
+                        </div>
+                        <button onClick={openAddEmployee} className="btn btn-primary btn-sm">
+                          <Plus size={14} /> Add First Employee
+                        </button>
+                      </td>
+                    </tr>
+                  ) : employees.slice(0, 5).map(e => (
                     <tr key={e.id}>
                       <td>
                         <div style={{ fontWeight: 800, fontSize: '13.5px', color: 'var(--text-main)' }}>
@@ -521,7 +535,21 @@ export default function PayrollView() {
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredEmployees.map(emp => (
+                  {filteredEmployees.length === 0 ? (
+                    <tr>
+                      <td colSpan={8} style={{ textAlign: 'center', padding: '36px 20px', color: 'var(--text-muted)' }}>
+                        <div style={{ fontSize: '14px', fontWeight: 700, color: '#FFFFFF', marginBottom: '6px' }}>
+                          No Staff Members Registered
+                        </div>
+                        <div style={{ fontSize: '12px', marginBottom: '14px' }}>
+                          Add employees to compute working days, calendar off-days, and salary disbursements.
+                        </div>
+                        <button onClick={openAddEmployee} className="btn btn-primary btn-sm">
+                          <Plus size={14} /> Add Employee Record
+                        </button>
+                      </td>
+                    </tr>
+                  ) : filteredEmployees.map(emp => (
                     <tr key={emp.id}>
                       <td>
                         <div style={{ fontWeight: 800, fontSize: '13.5px', color: 'var(--text-main)' }}>

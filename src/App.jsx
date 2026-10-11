@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { HashRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { TenantProvider } from './context/TenantContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import HeaderNav from './components/HeaderNav';
@@ -48,7 +48,7 @@ function PublicRoute({ children }) {
 
 export default function App() {
   return (
-    <BrowserRouter>
+    <HashRouter>
       <TenantProvider>
         <AuthProvider>
           <Routes>
@@ -104,6 +104,6 @@ export default function App() {
           </Routes>
         </AuthProvider>
       </TenantProvider>
-    </BrowserRouter>
+    </HashRouter>
   );
 }

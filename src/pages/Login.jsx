@@ -9,17 +9,33 @@ import {
   ShieldCheck,
   CheckCircle2,
   Package,
-  Layers
+  Layers,
+  Plus,
+  X,
+  Database
 } from 'lucide-react';
+import { isSupabaseConfigured } from '../lib/supabaseClient';
 
 export default function Login() {
   const navigate = useNavigate();
   const { login } = useAuth();
-  const { switchAgency, activeAgency } = useTenant();
+  const { switchAgency, allAgencies, registerAgency } = useTenant();
 
-  const [email, setEmail] = useState('admin@muruganfmcg.com');
+  const [email, setEmail] = useState('admin@fmcgagency.com');
   const [password, setPassword] = useState('••••••••••••');
   const [loading, setLoading] = useState(false);
+  const [registerModalOpen, setRegisterModalOpen] = useState(false);
+
+  // New Agency Registration Form State
+  const [newAgencyForm, setNewAgencyForm] = useState({
+    name: '',
+    tradeName: 'Authorized FMCG Distributor',
+    hubLocation: '',
+    gstin: '',
+    email: '',
+    phone: '',
+    brands: ''
+  });
 
   const handleSubmit = (e) => {
     e?.preventDefault();
@@ -27,12 +43,33 @@ export default function Login() {
     setTimeout(() => {
       login(email, password);
       navigate('/');
-    }, 300);
+    }, 250);
   };
 
-  const handleQuickLogin = (agencyId, userEmail) => {
+  const handleSelectAgency = (agencyId, agencyEmail) => {
     switchAgency(agencyId);
-    login(userEmail, 'demo123');
+    login(agencyEmail || email, 'demo123');
+    navigate('/');
+  };
+
+  const handleCreateAgency = (e) => {
+    e.preventDefault();
+    if (!newAgencyForm.name.trim()) return;
+
+    const created = registerAgency({
+      name: newAgencyForm.name.trim(),
+      tradeName: newAgencyForm.tradeName.trim(),
+      hubLocation: newAgencyForm.hubLocation.trim() || 'Central Godown',
+      gstin: newAgencyForm.gstin.trim() || 'GSTIN-PENDING',
+      email: newAgencyForm.email.trim() || 'admin@agency.com',
+      phone: newAgencyForm.phone.trim(),
+      brands: newAgencyForm.brands ? newAgencyForm.brands.split(',').map(b => b.trim()) : [],
+      logoEmoji: '🏢'
+    });
+
+    setRegisterModalOpen(false);
+    switchAgency(created.id);
+    login(created.email, 'demo123');
     navigate('/');
   };
 
@@ -57,7 +94,7 @@ export default function Login() {
         boxShadow: '0 10px 30px rgba(0, 0, 0, 0.45)',
         overflow: 'hidden'
       }}>
-        {/* Left: Real Product Operations Overview */}
+        {/* Left: Product Overview & Cloud DB Status */}
         <div style={{
           background: '#0B1120',
           padding: '36px',
@@ -86,7 +123,7 @@ export default function Login() {
                   FMCG Enterprise Portal
                 </h2>
                 <div style={{ fontSize: '11px', color: '#94A3B8', fontWeight: 600 }}>
-                  GODOWN STOCK · PAYROLL · FLEET COMPLIANCE
+                  MULTI-TENANT DISTRIBUTOR OPERATIONS SUITE
                 </div>
               </div>
             </div>
@@ -110,8 +147,8 @@ export default function Login() {
                 alignItems: 'center',
                 borderBottom: '1px solid #334155'
               }}>
-                <span>ACTUAL SYSTEM SCREENSHOT: STOCK MRP AUDIT</span>
-                <span style={{ color: '#10B981', fontSize: '10px' }}>LIVE VERIFIED</span>
+                <span>STOCK MANAGEMENT & AUDIT ENGINE</span>
+                <span style={{ color: '#10B981', fontSize: '10px' }}>MULTI-TENANT READY</span>
               </div>
               <img
                 src="/stock-hero.webp"
@@ -126,19 +163,19 @@ export default function Login() {
               />
             </div>
 
-            {/* Operational Metrics Checklist */}
+            {/* Operational Modules Checklist */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '12.5px', color: '#CBD5E1' }}>
                 <CheckCircle2 size={16} color="#10B981" />
-                <span><strong>CBB & PCS Dual-Unit Engine:</strong> Physical vs system godown reconciliation</span>
+                <span><strong>Multi-Tenant Isolation:</strong> Data partitioned strictly by Agency ID</span>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '12.5px', color: '#CBD5E1' }}>
                 <CheckCircle2 size={16} color="#10B981" />
-                <span><strong>Transport & Fleet Matrix:</strong> Vehicle FC, motor insurance, and service tracking</span>
+                <span><strong>Vehicle & Fleet Vault:</strong> RTO Fitness (FC), Insurance & service history</span>
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '12.5px', color: '#10B981' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '12.5px', color: '#CBD5E1' }}>
                 <CheckCircle2 size={16} color="#10B981" />
-                <span><strong>Payroll & Sales Rep Attendance:</strong> Sunday off logic, advances & payslip PDF</span>
+                <span><strong>Dual-Unit Stock Reconciliation:</strong> CBB & PCS variance counting</span>
               </div>
             </div>
           </div>
@@ -149,27 +186,32 @@ export default function Login() {
             borderTop: '1px solid #1E293B',
             display: 'flex',
             alignItems: 'center',
-            gap: '8px',
+            justifyContent: 'space-between',
             fontSize: '11.5px',
             color: '#64748B'
           }}>
-            <ShieldCheck size={15} color="#2563EB" />
-            <span>Dedicated Multi-Agency FMCG Distributor ERP</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Database size={15} color={isSupabaseConfigured() ? '#10B981' : '#64748B'} />
+              <span>
+                {isSupabaseConfigured() ? 'Cloud Storage: Supabase Connected' : 'Storage: Local Multi-Tenant Cache'}
+              </span>
+            </div>
+            <span style={{ color: '#94A3B8' }}>GitHub Pages Ready</span>
           </div>
         </div>
 
-        {/* Right: Sign-in & Agency Presets */}
+        {/* Right: Sign-in & Tenant Switcher */}
         <div style={{ padding: '36px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-          <div style={{ marginBottom: '24px' }}>
+          <div style={{ marginBottom: '22px' }}>
             <h3 style={{ fontSize: '19px', fontWeight: 800, color: '#FFFFFF', margin: '0 0 6px 0' }}>
-              Agency Authentication
+              Agency Portal Access
             </h3>
             <p style={{ color: '#94A3B8', fontSize: '12.5px', margin: 0 }}>
-              Sign in to manage warehouse inventory, fleet compliance and staff roster.
+              Select an agency tenant or register a new business distributor
             </p>
           </div>
 
-          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
             <div>
               <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#CBD5E1', marginBottom: '6px' }}>
                 Operator / Agency Email
@@ -178,7 +220,7 @@ export default function Login() {
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="admin@muruganfmcg.com"
+                placeholder="admin@fmcgagency.com"
                 required
                 style={{
                   width: '100%',
@@ -199,7 +241,7 @@ export default function Login() {
                   Password
                 </label>
                 <span style={{ fontSize: '11px', color: '#64748B' }}>
-                  Demo: any password accepted
+                  Demo authentication
                 </span>
               </div>
               <input
@@ -241,93 +283,173 @@ export default function Login() {
                 marginTop: '4px'
               }}
             >
-              {loading ? 'Authenticating Agency...' : 'Sign In to Agency Portal'}
+              {loading ? 'Entering Agency Portal...' : 'Enter Active Agency Hub'}
               <ArrowRight size={16} />
             </button>
           </form>
 
-          {/* Quick Demo Agency Switcher */}
-          <div style={{ marginTop: '28px', paddingTop: '20px', borderTop: '1px solid #1E293B' }}>
-            <div style={{ fontSize: '11px', fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: '10px' }}>
-              Select Active FMCG Agency:
+          {/* Registered Agencies List & Register New Button */}
+          <div style={{ marginTop: '26px', paddingTop: '18px', borderTop: '1px solid #1E293B' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
+              <span style={{ fontSize: '11px', fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                Active Tenants ({allAgencies.length}):
+              </span>
+              <button
+                type="button"
+                onClick={() => setRegisterModalOpen(true)}
+                style={{
+                  background: 'transparent',
+                  border: 'none',
+                  color: '#38BDF8',
+                  fontSize: '11.5px',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '4px'
+                }}
+              >
+                <Plus size={13} />
+                Register New Agency
+              </button>
             </div>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              <button
-                type="button"
-                onClick={() => handleQuickLogin('sri-murugan', 'admin@muruganfmcg.com')}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  padding: '10px 12px',
-                  background: '#0B1120',
-                  border: '1px solid #1E293B',
-                  borderRadius: '6px',
-                  color: '#FFFFFF',
-                  cursor: 'pointer',
-                  textAlign: 'left'
-                }}
-              >
-                <div>
-                  <div style={{ fontWeight: 700, fontSize: '12.5px', color: '#F1F5F9' }}>
-                    📦 Sri Murugan Agencies
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '160px', overflowY: 'auto' }}>
+              {allAgencies.map(agency => (
+                <button
+                  key={agency.id}
+                  type="button"
+                  onClick={() => handleSelectAgency(agency.id, agency.email)}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    padding: '9px 12px',
+                    background: '#0B1120',
+                    border: '1px solid #1E293B',
+                    borderRadius: '6px',
+                    color: '#FFFFFF',
+                    cursor: 'pointer',
+                    textAlign: 'left'
+                  }}
+                >
+                  <div>
+                    <div style={{ fontWeight: 700, fontSize: '12.5px', color: '#F1F5F9' }}>
+                      {agency.logoEmoji || '🏢'} {agency.name}
+                    </div>
+                    <div style={{ fontSize: '11px', color: '#64748B' }}>
+                      {agency.hubLocation} · GSTIN: {agency.gstin || 'None'}
+                    </div>
                   </div>
-                  <div style={{ fontSize: '11px', color: '#64748B' }}>
-                    ITC, Britannia, Dabur · Tiruppur Hub (4 Vehicles)
-                  </div>
-                </div>
-                <span style={{
-                  fontSize: '11px',
-                  fontWeight: 700,
-                  background: '#064E3B',
-                  color: '#34D399',
-                  padding: '3px 8px',
-                  borderRadius: '4px'
-                }}>
-                  Enter →
-                </span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => handleQuickLogin('annapoorna', 'dispatch@annapoornagoods.in')}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  padding: '10px 12px',
-                  background: '#0B1120',
-                  border: '1px solid #1E293B',
-                  borderRadius: '6px',
-                  color: '#FFFFFF',
-                  cursor: 'pointer',
-                  textAlign: 'left'
-                }}
-              >
-                <div>
-                  <div style={{ fontWeight: 700, fontSize: '12.5px', color: '#F1F5F9' }}>
-                    🏢 Annapoorna Consumer Goods
-                  </div>
-                  <div style={{ fontSize: '11px', color: '#64748B' }}>
-                    HUL, Nestlé, Cadbury · Erode Hub (3 Vehicles)
-                  </div>
-                </div>
-                <span style={{
-                  fontSize: '11px',
-                  fontWeight: 700,
-                  background: '#1E293B',
-                  color: '#94A3B8',
-                  padding: '3px 8px',
-                  borderRadius: '4px'
-                }}>
-                  Enter →
-                </span>
-              </button>
+                  <span style={{
+                    fontSize: '11px',
+                    fontWeight: 700,
+                    background: '#1E293B',
+                    color: '#94A3B8',
+                    padding: '3px 8px',
+                    borderRadius: '4px'
+                  }}>
+                    Select →
+                  </span>
+                </button>
+              ))}
             </div>
           </div>
         </div>
       </div>
+
+      {/* Modal: Register New FMCG Agency Tenant */}
+      {registerModalOpen && (
+        <div className="modal-overlay">
+          <div className="modal-content" style={{ maxWidth: '500px' }}>
+            <div style={{ padding: '18px 22px', borderBottom: '1px solid var(--border-medium)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <Building2 size={20} color="#2563EB" />
+                <h3 style={{ fontSize: '17px', fontWeight: 800 }}>Register New FMCG Agency Tenant</h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setRegisterModalOpen(false)}
+                style={{ background: 'transparent', border: 'none', color: '#94A3B8', cursor: 'pointer' }}
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <form onSubmit={handleCreateAgency} style={{ padding: '22px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              <div>
+                <label className="input-label">Agency / Distributor Business Name *</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. Shiva Ganga FMCG Distributors"
+                  className="input-field"
+                  value={newAgencyForm.name}
+                  onChange={(e) => setNewAgencyForm({ ...newAgencyForm, name: e.target.value })}
+                />
+              </div>
+
+              <div>
+                <label className="input-label">Trade Designation</label>
+                <input
+                  type="text"
+                  placeholder="e.g. Authorized C&F & Super-Stockist"
+                  className="input-field"
+                  value={newAgencyForm.tradeName}
+                  onChange={(e) => setNewAgencyForm({ ...newAgencyForm, tradeName: e.target.value })}
+                />
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                <div>
+                  <label className="input-label">Warehouse / Hub Location</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Tiruppur East"
+                    className="input-field"
+                    value={newAgencyForm.hubLocation}
+                    onChange={(e) => setNewAgencyForm({ ...newAgencyForm, hubLocation: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <label className="input-label">GSTIN Identification</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. 33AAACS1234F1Z8"
+                    className="input-field font-mono"
+                    value={newAgencyForm.gstin}
+                    onChange={(e) => setNewAgencyForm({ ...newAgencyForm, gstin: e.target.value })}
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="input-label">Authorized Principal Brands (Comma Separated)</label>
+                <input
+                  type="text"
+                  placeholder="e.g. Britannia, ITC Foods, Dabur India"
+                  className="input-field"
+                  value={newAgencyForm.brands}
+                  onChange={(e) => setNewAgencyForm({ ...newAgencyForm, brands: e.target.value })}
+                />
+              </div>
+
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '10px', marginTop: '10px' }}>
+                <button
+                  type="button"
+                  onClick={() => setRegisterModalOpen(false)}
+                  className="btn btn-secondary"
+                >
+                  Cancel
+                </button>
+                <button type="submit" className="btn btn-primary">
+                  Create & Launch Tenant
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

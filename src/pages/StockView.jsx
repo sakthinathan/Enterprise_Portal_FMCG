@@ -492,7 +492,21 @@ export default function StockView() {
                 </tr>
               </thead>
               <tbody>
-                {brands.map(brand => (
+                {brands.length === 0 ? (
+                  <tr>
+                    <td colSpan={7} style={{ textAlign: 'center', padding: '36px 20px', color: 'var(--text-muted)' }}>
+                      <div style={{ fontSize: '14px', fontWeight: 700, color: '#FFFFFF', marginBottom: '6px' }}>
+                        No Principal Brands or Stock Items Loaded Yet
+                      </div>
+                      <div style={{ fontSize: '12px', marginBottom: '14px' }}>
+                        Import your StockMRP.xlsx spreadsheet to automatically populate brand portfolios and SKU quantities.
+                      </div>
+                      <button onClick={() => setActiveTab('import')} className="btn btn-primary btn-sm">
+                        Go to Excel Upload Zone →
+                      </button>
+                    </td>
+                  </tr>
+                ) : brands.map(brand => (
                   <tr key={brand.id}>
                     <td>
                       <div style={{ fontWeight: 800, fontSize: '13.5px', color: '#FFFFFF' }}>
@@ -623,7 +637,21 @@ export default function StockView() {
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredItems.map(item => {
+                  {filteredItems.length === 0 ? (
+                    <tr>
+                      <td colSpan={9} style={{ textAlign: 'center', padding: '36px 20px', color: 'var(--text-muted)' }}>
+                        <div style={{ fontSize: '14px', fontWeight: 700, color: '#FFFFFF', marginBottom: '6px' }}>
+                          No SKU Items in Inventory
+                        </div>
+                        <div style={{ fontSize: '12px', marginBottom: '14px' }}>
+                          Drop your StockMRP.xlsx spreadsheet in the Excel Upload Zone to parse cartons, pieces and conversion factors.
+                        </div>
+                        <button onClick={() => setActiveTab('import')} className="btn btn-primary btn-sm">
+                          Go to Excel Upload Zone →
+                        </button>
+                      </td>
+                    </tr>
+                  ) : filteredItems.map(item => {
                     const cbbFormatted = formatCbbPcs(item.variance * item.conversion, item.conversion, true);
                     return (
                       <tr key={item.id}>
