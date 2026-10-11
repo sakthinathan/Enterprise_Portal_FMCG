@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useTenant } from '../context/TenantContext';
@@ -30,6 +30,17 @@ export default function Login() {
   const [password, setPassword] = useState('••••••••••••');
   const [loading, setLoading] = useState(false);
   const [registerModalOpen, setRegisterModalOpen] = useState(false);
+
+  useEffect(() => {
+    const roleFromUrl = searchParams.get('role');
+    if (roleFromUrl === 'checker') {
+      setLoginRole('checker');
+      setEmail('checker@thulir.com');
+    } else if (roleFromUrl === 'admin') {
+      setLoginRole('admin');
+      setEmail('admin@thulir.com');
+    }
+  }, [searchParams]);
 
   // New Agency Registration Form State
   const [newAgencyForm, setNewAgencyForm] = useState({

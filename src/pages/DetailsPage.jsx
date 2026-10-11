@@ -44,14 +44,13 @@ export default function DetailsPage() {
   const [activeSection, setActiveSection] = useState('overview'); // 'overview' | 'blind-audit' | 'fleet' | 'stock' | 'payroll' | 'dispatch' | 'multi-tenant' | 'tech'
   const [loginMenuOpen, setLoginMenuOpen] = useState(false);
 
-  const handleQuickLogin = (role) => {
+  // Navigate to login page based on role (does NOT auto login)
+  const handleNavigateToLogin = (role = 'admin') => {
     setLoginMenuOpen(false);
-    if (role === 'checker') {
-      login('checker@thulir.com', 'demo123', 'Godown Stock Auditor');
-      navigate('/stock-audit');
+    if (isAuthenticated) {
+      navigate(isAuditor ? '/stock-audit' : '/');
     } else {
-      login('admin@thulir.com', 'demo123', 'Agency Managing Director');
-      navigate('/');
+      navigate(`/login?role=${role}`);
     }
   };
 
@@ -223,7 +222,7 @@ export default function DetailsPage() {
                     </div>
                   </div>
                   <div
-                    onClick={() => handleQuickLogin('admin')}
+                    onClick={() => handleNavigateToLogin('admin')}
                     style={{
                       padding: '10px 12px',
                       borderRadius: 'var(--radius-md)',
@@ -240,7 +239,7 @@ export default function DetailsPage() {
                     <div style={{ fontSize: '11px', color: 'var(--text-dim)' }}>admin@thulir.com</div>
                   </div>
                   <div
-                    onClick={() => handleQuickLogin('checker')}
+                    onClick={() => handleNavigateToLogin('checker')}
                     style={{
                       padding: '10px 12px',
                       borderRadius: 'var(--radius-md)',
@@ -291,11 +290,11 @@ export default function DetailsPage() {
 
             <div style={{ display: 'flex', gap: '10px' }}>
               <button
-                onClick={() => handleQuickLogin('admin')}
+                onClick={() => handleNavigateToLogin('admin')}
                 className="btn btn-primary btn-sm"
                 style={{ padding: '8px 16px' }}
               >
-                <span>Launch Admin Workspace</span>
+                <span>Go to Admin Login</span>
                 <ArrowRight size={13} />
               </button>
             </div>
@@ -538,8 +537,8 @@ export default function DetailsPage() {
               </div>
 
               <div style={{ display: 'flex', gap: '12px' }}>
-                <button onClick={() => handleQuickLogin('checker')} className="btn btn-emerald btn-sm">
-                  <span>Open Godown Auditor Screen</span>
+                <button onClick={() => handleNavigateToLogin('checker')} className="btn btn-emerald btn-sm">
+                  <span>Go to Godown Auditor Login</span>
                   <ArrowRight size={13} />
                 </button>
               </div>

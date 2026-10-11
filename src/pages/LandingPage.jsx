@@ -46,15 +46,13 @@ export default function LandingPage() {
   const [interactiveWorkingDays, setInteractiveWorkingDays] = useState(26);
   const [selectedRoute, setSelectedRoute] = useState('salem'); // 'salem' | 'trichy' | 'coimbatore'
 
-  // Quick 1-click login handler from top menu
-  const handleQuickLogin = (role) => {
+  // Navigate to login page based on role (does NOT auto login)
+  const handleNavigateToLogin = (role = 'admin') => {
     setLoginMenuOpen(false);
-    if (role === 'checker') {
-      login('checker@thulir.com', 'demo123', 'Godown Stock Auditor');
-      navigate('/stock-audit');
+    if (isAuthenticated) {
+      navigate(isAuditor ? '/stock-audit' : '/');
     } else {
-      login('admin@thulir.com', 'demo123', 'Agency Managing Director');
-      navigate('/');
+      navigate(`/login?role=${role}`);
     }
   };
 
@@ -328,7 +326,7 @@ export default function LandingPage() {
 
                   {/* Option 1: Operations Admin */}
                   <div
-                    onClick={() => handleQuickLogin('admin')}
+                    onClick={() => handleNavigateToLogin('admin')}
                     style={{
                       padding: '12px',
                       borderRadius: 'var(--radius-md)',
@@ -358,13 +356,13 @@ export default function LandingPage() {
                       Fleet logistics, unmasked stock reconciliation, staff payroll, and van loading passes.
                     </p>
                     <div style={{ marginTop: '8px', fontSize: '11px', color: '#2563EB', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '4px' }}>
-                      Sign in as admin@thulir.com <ArrowRight size={12} />
+                      Go to Admin Login Portal <ArrowRight size={12} />
                     </div>
                   </div>
 
                   {/* Option 2: Godown Stock Auditor */}
                   <div
-                    onClick={() => handleQuickLogin('checker')}
+                    onClick={() => handleNavigateToLogin('checker')}
                     style={{
                       padding: '12px',
                       borderRadius: 'var(--radius-md)',
@@ -394,7 +392,7 @@ export default function LandingPage() {
                       Physical CBB & PCS floor entry. System quantities masked to prevent fraud and bias.
                     </p>
                     <div style={{ marginTop: '8px', fontSize: '11px', color: '#059669', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '4px' }}>
-                      Sign in as checker@thulir.com <ArrowRight size={12} />
+                      Go to Godown Auditor Login <ArrowRight size={12} />
                     </div>
                   </div>
 
@@ -502,7 +500,7 @@ export default function LandingPage() {
           marginBottom: '54px'
         }}>
           <button
-            onClick={() => handleQuickLogin('admin')}
+            onClick={() => handleNavigateToLogin('admin')}
             className="btn btn-primary"
             style={{
               padding: '13px 28px',
@@ -516,7 +514,7 @@ export default function LandingPage() {
           </button>
 
           <button
-            onClick={() => handleQuickLogin('checker')}
+            onClick={() => handleNavigateToLogin('checker')}
             style={{
               padding: '13px 26px',
               fontSize: '14.5px',
@@ -865,8 +863,8 @@ export default function LandingPage() {
                 </div>
 
                 <div style={{ display: 'flex', gap: '8px' }}>
-                  <button onClick={() => handleQuickLogin('checker')} className="btn btn-emerald btn-sm">
-                    <span>Try Real Auditor Portal</span>
+                  <button onClick={() => handleNavigateToLogin('checker')} className="btn btn-emerald btn-sm">
+                    <span>Go to Auditor Login Portal</span>
                     <ArrowRight size={13} />
                   </button>
                   <Link to="/details" className="btn btn-secondary btn-sm" style={{ textDecoration: 'none' }}>
@@ -1230,7 +1228,7 @@ export default function LandingPage() {
 
           <div style={{ display: 'flex', justifyContent: 'center', gap: '14px', flexWrap: 'wrap' }}>
             <button
-              onClick={() => handleQuickLogin('admin')}
+              onClick={() => handleNavigateToLogin('admin')}
               style={{
                 padding: '13px 26px',
                 fontSize: '14.5px',
@@ -1251,7 +1249,7 @@ export default function LandingPage() {
             </button>
 
             <button
-              onClick={() => handleQuickLogin('checker')}
+              onClick={() => handleNavigateToLogin('checker')}
               style={{
                 padding: '13px 26px',
                 fontSize: '14.5px',
@@ -1328,8 +1326,8 @@ export default function LandingPage() {
             <Link to="/login" style={{ color: 'var(--text-muted)', textDecoration: 'none' }}>
               Standard Login
             </Link>
-            <span onClick={() => handleQuickLogin('checker')} style={{ color: 'var(--text-muted)', cursor: 'pointer' }}>
-              Blind Godown Audit
+            <span onClick={() => handleNavigateToLogin('checker')} style={{ color: 'var(--text-muted)', cursor: 'pointer' }}>
+              Blind Godown Audit Login
             </span>
           </div>
         </div>
